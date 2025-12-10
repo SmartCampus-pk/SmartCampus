@@ -108,11 +108,123 @@ svg {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-grow: 1;
+    width: 100%;
+    overflow-y: auto;
 
     h1 {
       text-align: center;
+    }
+  }
+
+  .events-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px 0;
+
+    h2 {
+      font-size: 36px;
+      margin-bottom: 24px;
+      text-align: center;
+
+      @media (max-width: 768px) {
+        font-size: 28px;
+      }
+    }
+  }
+
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+
+  .event-card {
+    display: flex;
+    flex-direction: column;
+    background: rgb(20, 20, 20);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgb(40, 40, 40);
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+    }
+
+    .event-image {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      background: rgb(30, 30, 30);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .event-content {
+      padding: 20px;
+
+      h3 {
+        font-size: 24px;
+        margin: 0 0 12px 0;
+        line-height: 1.3;
+      }
+
+      .event-description {
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0 0 12px 0;
+        color: rgb(200, 200, 200);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .event-date {
+        font-size: 14px;
+        color: rgb(150, 150, 150);
+        display: block;
+      }
+    }
+  }
+
+  .view-all-link {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 24px;
+    background: rgb(1000, 1000, 1000);
+    color: rgb(0, 0, 0);
+    border-radius: 4px;
+    font-weight: 500;
+    margin-top: 16px;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  .no-events {
+    text-align: center;
+    padding: 40px 20px;
+
+    p {
+      margin-bottom: 24px;
     }
   }
 
@@ -161,4 +273,112 @@ svg {
       border-radius: 4px;
     }
   }
+}
+
+.events-archive,
+.event-single {
+  min-height: 100vh;
+  padding: 45px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (max-width: 400px) {
+    padding: 24px;
+  }
+
+  .container {
+    width: 100%;
+  }
+}
+
+.archive-header {
+  margin-bottom: 40px;
+
+  h1 {
+    margin-bottom: 16px;
+  }
+}
+
+.back-link {
+  display: inline-block;
+  text-decoration: none;
+  color: rgb(200, 200, 200);
+  margin-bottom: 24px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: rgb(1000, 1000, 1000);
+  }
+}
+
+.event-single {
+  .event-article {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .event-header {
+    margin-bottom: 40px;
+
+    .event-hero-image {
+      width: 100%;
+      height: 400px;
+      overflow: hidden;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      background: rgb(20, 20, 20);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      @media (max-width: 768px) {
+        height: 250px;
+      }
+    }
+
+    .event-header-content {
+      h1 {
+        margin-bottom: 16px;
+      }
+
+      .event-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: rgb(200, 200, 200);
+        font-size: 16px;
+
+        .event-date,
+        .event-location {
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .event-body {
+    .event-description {
+      font-size: 20px;
+      line-height: 1.6;
+      color: rgb(220, 220, 220);
+      margin-bottom: 32px;
+    }
+
+    .event-content {
+      .rich-text-content {
+        font-size: 18px;
+        line-height: 1.8;
+        color: rgb(200, 200, 200);
+      }
+    }
+  }
+}
+
+.event-location {
+  margin: 0;
+  font-size: 14px;
+  color: rgb(150, 150, 150);
 }
