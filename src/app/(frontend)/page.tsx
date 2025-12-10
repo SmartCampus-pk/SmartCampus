@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import React from 'react'
 
+import { FeatureCard } from '@/components/FeatureCard'
+import { Navigation } from '@/components/Navigation'
+import { Separator } from '@/components/Separator'
 import config from '@/payload.config'
 import './styles.css'
 
@@ -21,13 +24,48 @@ export default async function HomePage() {
 
   return (
     <div className="home">
+      <Navigation />
       <div className="content">
-        <h1>Smart Campus</h1>
-        <p>Witamy na platformie wydarzeń kampusowych</p>
+        <section className="hero-section">
+          <h1>Smart Campus</h1>
+          <p>Twoja centralna platforma do odkrywania i zarządzania wydarzeniami kampusowymi</p>
+          <Link href="/events" className="cta-button">
+            Przeglądaj wydarzenia →
+          </Link>
+        </section>
+
+        <section className="features-section">
+          <h2>Wszystko czego potrzebujesz</h2>
+          <p className="section-subtitle">
+            Kompleksowe rozwiązanie do zarządzania życiem kampusowym
+          </p>
+          <div className="features-grid">
+            <FeatureCard
+              icon="📅"
+              title="Kalendarz wydarzeń"
+              description="Śledź wszystkie nadchodzące wydarzenia w jednym miejscu. Nigdy nie przegap ważnego spotkania czy konferencji."
+            />
+            <FeatureCard
+              icon="🔔"
+              title="Powiadomienia"
+              description="Otrzymuj powiadomienia o nowych wydarzeniach i zmianach w harmonogramie w czasie rzeczywistym."
+            />
+            <FeatureCard
+              icon="🎯"
+              title="Łatwe zarządzanie"
+              description="Intuicyjny panel administracyjny umożliwia szybkie dodawanie i edycję wydarzeń."
+            />
+          </div>
+        </section>
+
+        <Separator />
 
         {eventsResult.docs.length > 0 && (
           <section className="events-section">
-            <h2>Najbliższe wydarzenia</h2>
+            <h2>Nadchodzące wydarzenia</h2>
+            <p className="section-subtitle">
+              Nie przegap najciekawszych wydarzeń w naszym kampusie
+            </p>
             <div className="events-grid">
               {eventsResult.docs.map((event) => (
                 <Link key={event.id} href={`/events/${event.slug}`} className="event-card">
@@ -35,31 +73,36 @@ export default async function HomePage() {
                     <div className="event-image">
                       <Image
                         alt={event.image.alt || event.title}
-                        height={200}
+                        height={240}
                         src={typeof event.image.url === 'string' ? event.image.url : ''}
-                        width={300}
+                        width={340}
                       />
                     </div>
                   )}
                   <div className="event-content">
                     <h3>{event.title}</h3>
                     <p className="event-description">{event.description}</p>
-                    {event.eventDate && (
-                      <time className="event-date">
-                        {new Date(event.eventDate).toLocaleDateString('pl-PL', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    )}
+                    <div className="event-meta">
+                      {event.eventDate && (
+                        <time className="event-date">
+                          {new Date(event.eventDate).toLocaleDateString('pl-PL', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </time>
+                      )}
+                      {event.location && <p className="event-location">📍 {event.location}</p>}
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
-            <Link href="/events" className="view-all-link">
-              Zobacz wszystkie wydarzenia →
-            </Link>
+            <div style={{ textAlign: 'center' }}>
+              <Link href="/events" className="view-all-link">
+                Zobacz wszystkie wydarzenia →
+              </Link>
+            </div>
           </section>
         )}
 

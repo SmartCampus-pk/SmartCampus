@@ -1,8 +1,9 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { getPayload } from 'payload'
 import React from 'react'
 
+import { EventCard } from '@/components/EventCard'
+import { Navigation } from '@/components/Navigation'
 import config from '@/payload.config'
 import '../styles.css'
 
@@ -22,48 +23,45 @@ export default async function EventsArchivePage() {
 
   return (
     <div className="events-archive">
-      <div className="container">
+      <Navigation />
+      <div className="archive-container">
+        <Link href="/" className="back-link">
+          ← Powrót
+        </Link>
         <header className="archive-header">
-          <h1>Wszystkie wydarzenia</h1>
-          <Link href="/" className="back-link">
-            ← Powrót do strony głównej
-          </Link>
+          <h1>Wydarzenia</h1>
+          <p className="archive-subtitle">Wszystkie wydarzenia kampusowe w jednym miejscu</p>
         </header>
 
         {eventsResult.docs.length > 0 ? (
-          <div className="events-grid">
+          <div className="cards-grid">
             {eventsResult.docs.map((event) => (
-              <Link key={event.id} href={`/events/${event.slug}`} className="event-card">
-                {event.image && typeof event.image === 'object' && (
-                  <div className="event-image">
-                    <Image
-                      alt={event.image.alt || event.title}
-                      height={200}
-                      src={typeof event.image.url === 'string' ? event.image.url : ''}
-                      width={300}
-                    />
-                  </div>
-                )}
-                <div className="event-content">
-                  <h3>{event.title}</h3>
-                  <p className="event-description">{event.description}</p>
-                  {event.eventDate && (
-                    <time className="event-date">
-                      {new Date(event.eventDate).toLocaleDateString('pl-PL', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </time>
-                  )}
-                  {event.location && <p className="event-location">📍 {event.location}</p>}
-                </div>
-              </Link>
+              <EventCard
+                key={event.id}
+                slug={event.slug}
+                title={event.title}
+                description={event.description}
+                image={
+                  event.image && typeof event.image === 'object'
+                    ? {
+                        url: typeof event.image.url === 'string' ? event.image.url : '',
+                        alt: event.image.alt,
+                      }
+                    : undefined
+                }
+                eventDate={event.eventDate}
+                location={event.location || undefined}
+              />
             ))}
           </div>
         ) : (
-          <div className="no-events">
-            <p>Brak dostępnych wydarzeń.</p>
+          <div className="empty-state">
+            <div className="empty-icon">📅</div>
+            <h2>Brak wydarzeń</h2>
+            <p>Nie znaleziono żadnych wydarzeń</p>
+            <Link href="/" className="button-primary">
+              Powrót do strony głównej
+            </Link>
           </div>
         )}
       </div>

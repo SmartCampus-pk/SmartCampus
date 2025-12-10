@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import React from 'react'
 
+import { Navigation } from '@/components/Navigation'
 import config from '@/payload.config'
 import '../../styles.css'
 
@@ -65,6 +66,7 @@ export default async function EventSinglePage({ params }: Props) {
 
   return (
     <div className="event-single">
+      <Navigation />
       <div className="container">
         <Link href="/events" className="back-link">
           ← Powrót do listy wydarzeń
@@ -88,7 +90,6 @@ export default async function EventSinglePage({ params }: Props) {
               <div className="event-meta">
                 {event.eventDate && (
                   <time className="event-date">
-                    📅{' '}
                     {new Date(event.eventDate).toLocaleDateString('pl-PL', {
                       year: 'numeric',
                       month: 'long',
@@ -107,8 +108,6 @@ export default async function EventSinglePage({ params }: Props) {
             <p className="event-description">{event.description}</p>
             {event.content && Array.isArray(event.content) && event.content.length > 0 && (
               <div className="event-content">
-                {/* Rich text content would be rendered here */}
-                {/* For now, we'll just show a placeholder */}
                 <div className="rich-text-content">
                   <p>Treść wydarzenia dostępna w panelu administracyjnym.</p>
                 </div>
