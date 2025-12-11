@@ -38,19 +38,12 @@ export default async function EventsArchivePage() {
             {eventsResult.docs.map((event) => (
               <EventCard
                 key={event.id}
-                slug={event.slug}
+                id={event.id}
                 title={event.title}
                 description={event.description}
-                image={
-                  event.image && typeof event.image === 'object'
-                    ? {
-                        url: typeof event.image.url === 'string' ? event.image.url : '',
-                        alt: event.image.alt,
-                      }
-                    : undefined
-                }
                 eventDate={event.eventDate}
                 location={event.location || undefined}
+                participantsCount={event.participantsCount ?? undefined}
               />
             ))}
           </div>

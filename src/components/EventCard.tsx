@@ -1,39 +1,35 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
 interface EventCardProps {
-  slug: string
+  id: string
   title: string
   description: string
-  image?: {
-    url: string
-    alt?: string
-  }
   eventDate?: string
   location?: string
+  participantsCount?: number
   className?: string
 }
 
 export function EventCard({
-  slug,
+  id,
   title,
   description,
-  image,
   eventDate,
   location,
+  participantsCount,
   className,
 }: EventCardProps) {
   return (
-    <Link href={`/events/${slug}`} className={`card ${className || ''}`}>
-      {image && (
-        <div className="card-image">
-          <Image alt={image.alt || title} height={240} src={image.url} width={400} />
-        </div>
-      )}
+    <Link href={`/events/${id}`} className={`card ${className || ''}`}>
       <div className="card-content">
         <h3 className="card-title">{title}</h3>
         <p className="card-description">{description}</p>
+        {participantsCount !== undefined && participantsCount !== null && (
+          <p className="card-participants">
+            👥 {participantsCount} {participantsCount === 1 ? 'uczestnik' : 'uczestników'}
+          </p>
+        )}
         {(eventDate || location) && (
           <div className="card-footer">
             {eventDate && (

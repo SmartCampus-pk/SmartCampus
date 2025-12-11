@@ -1,5 +1,4 @@
 import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
 import Link from 'next/link'
 import { getPayload } from 'payload'
 import React from 'react'
@@ -68,20 +67,16 @@ export default async function HomePage() {
             </p>
             <div className="events-grid">
               {eventsResult.docs.map((event) => (
-                <Link key={event.id} href={`/events/${event.slug}`} className="event-card">
-                  {event.image && typeof event.image === 'object' && (
-                    <div className="event-image">
-                      <Image
-                        alt={event.image.alt || event.title}
-                        height={240}
-                        src={typeof event.image.url === 'string' ? event.image.url : ''}
-                        width={340}
-                      />
-                    </div>
-                  )}
+                <Link key={event.id} href={`/events/${event.id}`} className="event-card">
                   <div className="event-content">
                     <h3>{event.title}</h3>
                     <p className="event-description">{event.description}</p>
+                    {event.participantsCount !== undefined && event.participantsCount !== null && (
+                      <p className="event-participants">
+                        👥 {event.participantsCount}{' '}
+                        {event.participantsCount === 1 ? 'uczestnik' : 'uczestników'}
+                      </p>
+                    )}
                     <div className="event-meta">
                       {event.eventDate && (
                         <time className="event-date">
