@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     events: Event;
     organizations: Organization;
+    'event-participations': EventParticipation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
+    'event-participations': EventParticipationsSelect<false> | EventParticipationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -203,6 +205,14 @@ export interface User {
    * Last login timestamp
    */
   lastLoginAt?: string | null;
+  /**
+   * User who created this account
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * User who last updated this account
+   */
+  updatedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -239,6 +249,32 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    large?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -257,37 +293,22 @@ export interface Organization {
   /**
    * Type of organization
    */
-  type: 'scientific-circle' | 'student-organization' | 'faculty' | 'department' | 'student-government' | 'other';
+  type:
+    | 'company'
+    | 'scientific-circle'
+    | 'student-organization'
+    | 'faculty'
+    | 'department'
+    | 'student-government'
+    | 'other';
   /**
    * Short description of the organization
    */
   description: string;
   /**
-   * Detailed information about the organization
-   */
-  fullDescription?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
    * Organization logo
    */
   logo?: (string | null) | Media;
-  /**
-   * Cover image for organization page
-   */
-  coverImage?: (string | null) | Media;
   /**
    * Primary contact email
    */
@@ -301,59 +322,9 @@ export interface Organization {
    */
   website?: string | null;
   /**
-   * Social media profiles
-   */
-  socialMedia?: {
-    /**
-     * Facebook profile URL
-     */
-    facebook?: string | null;
-    /**
-     * Instagram profile URL
-     */
-    instagram?: string | null;
-    /**
-     * Twitter/X profile URL
-     */
-    twitter?: string | null;
-    /**
-     * LinkedIn profile URL
-     */
-    linkedin?: string | null;
-    /**
-     * YouTube channel URL
-     */
-    youtube?: string | null;
-  };
-  /**
-   * Physical location details
-   */
-  location?: {
-    /**
-     * Building name or number
-     */
-    building?: string | null;
-    /**
-     * Room number
-     */
-    room?: string | null;
-    /**
-     * Full address
-     */
-    address?: string | null;
-  };
-  /**
    * Current status of the organization
    */
   status: 'active' | 'inactive' | 'pending' | 'suspended';
-  /**
-   * Year the organization was founded
-   */
-  foundedYear?: number | null;
-  /**
-   * Number of active members
-   */
-  memberCount?: number | null;
   /**
    * Tags for categorization and search
    */
@@ -364,9 +335,21 @@ export interface Organization {
       }[]
     | null;
   /**
-   * Feature this organization on the homepage
+   * User who created this organization
    */
-  featured?: boolean | null;
+  createdBy?: (string | null) | User;
+  /**
+   * User who last updated this organization
+   */
+  updatedBy?: (string | null) | User;
+  /**
+   * Soft delete timestamp
+   */
+  deletedAt?: string | null;
+  /**
+   * User who deleted this organization
+   */
+  deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -383,21 +366,6 @@ export interface Event {
    */
   slug: string;
   description: string;
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
   /**
    * Organization hosting this event (N:1 relationship)
    */
@@ -440,50 +408,21 @@ export interface Event {
     onlineLink?: string | null;
   };
   /**
-   * Featured image for the event
-   */
-  image?: (string | null) | Media;
-  /**
-   * Additional images for the event
-   */
-  gallery?:
-    | {
-        image?: (string | null) | Media;
-        id?: string | null;
-      }[]
-    | null;
-  /**
    * Event category
    */
   category: 'workshop' | 'conference' | 'seminar' | 'social' | 'competition' | 'meeting' | 'other';
   /**
-   * Maximum number of participants
+   * Maximum number of participants (optional)
    */
   capacity?: number | null;
   /**
-   * Number of registered participants
+   * Number of participants (auto-calculated)
    */
-  registeredCount?: number | null;
-  /**
-   * Is registration required for this event?
-   */
-  registrationRequired?: boolean | null;
-  /**
-   * Registration deadline
-   */
-  registrationDeadline?: string | null;
-  /**
-   * External registration link
-   */
-  registrationLink?: string | null;
+  participantsCount?: number | null;
   /**
    * Current event status
    */
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-  /**
-   * Feature this event on the homepage
-   */
-  featured?: boolean | null;
   /**
    * Tags for categorization and search
    */
@@ -494,28 +433,45 @@ export interface Event {
       }[]
     | null;
   /**
-   * Event organizers
+   * User who created this event
    */
-  organizers?:
-    | {
-        organizer?: (string | null) | User;
-        id?: string | null;
-      }[]
-    | null;
+  createdBy?: (string | null) | User;
   /**
-   * Event sponsors
+   * User who last updated this event
    */
-  sponsors?:
-    | {
-        name?: string | null;
-        logo?: (string | null) | Media;
-        website?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  updatedBy?: (string | null) | User;
+  /**
+   * Soft delete timestamp
+   */
+  deletedAt?: string | null;
+  /**
+   * User who deleted this event
+   */
+  deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-participations".
+ */
+export interface EventParticipation {
+  id: string;
+  /**
+   * Event the user is participating in
+   */
+  event: string | Event;
+  /**
+   * User participating in the event
+   */
+  user: string | User;
+  /**
+   * Participation status
+   */
+  status: 'going' | 'interested' | 'cancelled';
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -556,6 +512,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'organizations';
         value: string | Organization;
+      } | null)
+    | ({
+        relationTo: 'event-participations';
+        value: string | EventParticipation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -630,6 +590,8 @@ export interface UsersSelect<T extends boolean = true> {
       };
   isActive?: T;
   lastLoginAt?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -664,6 +626,40 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        large?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -673,7 +669,6 @@ export interface EventsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
-  content?: T;
   organization?: T;
   eventDate?: T;
   endDate?: T;
@@ -687,41 +682,20 @@ export interface EventsSelect<T extends boolean = true> {
         isOnline?: T;
         onlineLink?: T;
       };
-  image?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
   category?: T;
   capacity?: T;
-  registeredCount?: T;
-  registrationRequired?: T;
-  registrationDeadline?: T;
-  registrationLink?: T;
+  participantsCount?: T;
   status?: T;
-  featured?: T;
   tags?:
     | T
     | {
         tag?: T;
         id?: T;
       };
-  organizers?:
-    | T
-    | {
-        organizer?: T;
-        id?: T;
-      };
-  sponsors?:
-    | T
-    | {
-        name?: T;
-        logo?: T;
-        website?: T;
-        id?: T;
-      };
+  createdBy?: T;
+  updatedBy?: T;
+  deletedAt?: T;
+  deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -735,41 +709,35 @@ export interface OrganizationsSelect<T extends boolean = true> {
   slug?: T;
   type?: T;
   description?: T;
-  fullDescription?: T;
   logo?: T;
-  coverImage?: T;
   contactEmail?: T;
   contactPhone?: T;
   website?: T;
-  socialMedia?:
-    | T
-    | {
-        facebook?: T;
-        instagram?: T;
-        twitter?: T;
-        linkedin?: T;
-        youtube?: T;
-      };
-  location?:
-    | T
-    | {
-        building?: T;
-        room?: T;
-        address?: T;
-      };
   status?: T;
-  foundedYear?: T;
-  memberCount?: T;
   tags?:
     | T
     | {
         tag?: T;
         id?: T;
       };
-  featured?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  deletedAt?: T;
+  deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-participations_select".
+ */
+export interface EventParticipationsSelect<T extends boolean = true> {
+  event?: T;
+  user?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
