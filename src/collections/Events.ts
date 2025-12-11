@@ -1,14 +1,50 @@
 import type { CollectionConfig } from 'payload'
+import { slugify, generateUniqueSlug } from '../lib/slugify'
 
 export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'organization', 'eventDate', 'status', 'featured'],
+    defaultColumns: ['title', 'organization', 'eventDate', 'status', 'participantsCount'],
     group: 'Content',
+    listSearchableFields: ['title', 'description', 'location'],
   },
   access: {
-    read: () => true,
+    // Everyone can read non-deleted events
+    read: ({ req: { user } }) => {
+      // Super admins can see deleted events
+      if (user?.role === 'super-admin') return true
+
+      // Others only see non-deleted
+      return {
+        deletedAt: {
+          exists: false,
+        },
+      }
+    },
+    // Only logged in users can create events
+    create: ({ req: { user } }) => !!user,
+    // Organizers and org-admins of the event's organization can update
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'super-admin') return true
+
+      // Org admins can update events from their organization
+      if (user.role === 'org-admin' && user.organization) {
+        return {
+          organization: {
+            equals: user.organization,
+          },
+        }
+      }
+
+      // For now, allow all logged in users to update
+      return true
+    },
+    // Only super-admins can delete events
+    delete: ({ req: { user } }) => {
+      return user?.role === 'super-admin'
+    },
   },
   fields: [
     {
@@ -34,10 +70,6 @@ export const Events: CollectionConfig = {
       required: true,
     },
     {
-      name: 'content',
-      type: 'richText',
-    },
-    {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
@@ -57,6 +89,19 @@ export const Events: CollectionConfig = {
         description: 'Date and time of the event',
         position: 'sidebar',
       },
+      validate: (value, { operation }) => {
+        if (!value) return true // Required validation handles this
+
+        const eventDate = new Date(value)
+        const now = new Date()
+
+        // Only check for past dates on create, not on update
+        if (operation === 'create' && eventDate < now) {
+          return 'Event date cannot be in the past'
+        }
+
+        return true
+      },
     },
     {
       name: 'endDate',
@@ -64,6 +109,18 @@ export const Events: CollectionConfig = {
       admin: {
         description: 'End date and time (for multi-day events)',
         position: 'sidebar',
+      },
+      validate: (value: Date | null | undefined, { data }: { data: any }) => {
+        if (!value || !data?.eventDate) return true
+
+        const endDate = new Date(value)
+        const eventDate = new Date(data.eventDate)
+
+        if (endDate <= eventDate) {
+          return 'End date must be later than event date'
+        }
+
+        return true
       },
     },
     {
@@ -120,28 +177,6 @@ export const Events: CollectionConfig = {
       },
     },
     {
-      name: 'image',
-      type: 'upload',
-      relationTo: 'media',
-      admin: {
-        description: 'Featured image for the event',
-      },
-    },
-    {
-      name: 'gallery',
-      type: 'array',
-      fields: [
-        {
-          name: 'image',
-          type: 'upload',
-          relationTo: 'media',
-        },
-      ],
-      admin: {
-        description: 'Additional images for the event',
-      },
-    },
-    {
       name: 'category',
       type: 'select',
       required: true,
@@ -186,45 +221,19 @@ export const Events: CollectionConfig = {
       type: 'number',
       min: 0,
       admin: {
-        description: 'Maximum number of participants',
+        description: 'Maximum number of participants (optional)',
         position: 'sidebar',
       },
     },
     {
-      name: 'registeredCount',
+      name: 'participantsCount',
       type: 'number',
       min: 0,
       defaultValue: 0,
       admin: {
-        description: 'Number of registered participants',
+        description: 'Number of participants (auto-calculated)',
         position: 'sidebar',
         readOnly: true,
-      },
-    },
-    {
-      name: 'registrationRequired',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        description: 'Is registration required for this event?',
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'registrationDeadline',
-      type: 'date',
-      admin: {
-        description: 'Registration deadline',
-        position: 'sidebar',
-        condition: (data) => data.registrationRequired,
-      },
-    },
-    {
-      name: 'registrationLink',
-      type: 'text',
-      admin: {
-        description: 'External registration link',
-        condition: (data) => data.registrationRequired,
       },
     },
     {
@@ -257,16 +266,6 @@ export const Events: CollectionConfig = {
       },
     },
     {
-      name: 'featured',
-      type: 'checkbox',
-      defaultValue: false,
-      index: true,
-      admin: {
-        description: 'Feature this event on the homepage',
-        position: 'sidebar',
-      },
-    },
-    {
       name: 'tags',
       type: 'array',
       fields: [
@@ -280,42 +279,117 @@ export const Events: CollectionConfig = {
       },
     },
     {
-      name: 'organizers',
-      type: 'array',
-      fields: [
-        {
-          name: 'organizer',
-          type: 'relationship',
-          relationTo: 'users',
-        },
-      ],
+      name: 'createdBy',
+      type: 'relationship',
+      relationTo: 'users',
       admin: {
-        description: 'Event organizers',
+        description: 'User who created this event',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
     {
-      name: 'sponsors',
-      type: 'array',
-      fields: [
-        {
-          name: 'name',
-          type: 'text',
-        },
-        {
-          name: 'logo',
-          type: 'upload',
-          relationTo: 'media',
-        },
-        {
-          name: 'website',
-          type: 'text',
-        },
-      ],
+      name: 'updatedBy',
+      type: 'relationship',
+      relationTo: 'users',
       admin: {
-        description: 'Event sponsors',
+        description: 'User who last updated this event',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'deletedAt',
+      type: 'date',
+      admin: {
+        description: 'Soft delete timestamp',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'deletedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who deleted this event',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, operation }) => {
+        // Auto-generate slug from title if not provided
+        if (data?.title && (!data?.slug || operation === 'create')) {
+          const baseSlug = slugify(data.title)
+          data.slug = await generateUniqueSlug(
+            baseSlug,
+            'events',
+            req.payload,
+            operation === 'update' ? data.id : undefined,
+          )
+        }
+        return data
+      },
+    ],
+    beforeChange: [
+      ({ req, operation, data }) => {
+        if (req.user) {
+          if (operation === 'create') {
+            data.createdBy = req.user.id
+          }
+          data.updatedBy = req.user.id
+        }
+        return data
+      },
+    ],
+    beforeDelete: [
+      async ({ req, id }) => {
+        // Soft delete instead of hard delete
+        await req.payload.update({
+          collection: 'events',
+          id,
+          data: {
+            deletedAt: new Date().toISOString(),
+            deletedBy: req.user?.id,
+          },
+        })
+
+        // Return false to prevent actual deletion
+        return false
+      },
+    ],
+    afterRead: [
+      async ({ doc, req }) => {
+        // Auto-calculate participants count from event-participations collection
+        if (doc?.id) {
+          const participations = await req.payload.count({
+            collection: 'event-participations',
+            where: {
+              and: [
+                {
+                  event: {
+                    equals: doc.id,
+                  },
+                },
+                {
+                  status: {
+                    equals: 'going',
+                  },
+                },
+              ],
+            },
+          })
+
+          doc.participantsCount = participations.totalDocs
+        }
+
+        return doc
+      },
+    ],
+  },
   versions: {
     drafts: true,
   },

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { slugify, generateUniqueSlug } from '../lib/slugify'
 
 export const Organizations: CollectionConfig = {
   slug: 'organizations',
@@ -6,9 +7,44 @@ export const Organizations: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'type', 'status', 'createdAt'],
     group: 'Content',
+    listSearchableFields: ['name', 'description'],
   },
   access: {
-    read: () => true,
+    // Everyone can read active, non-deleted organizations
+    read: ({ req: { user } }) => {
+      // Super admins can see all
+      if (user?.role === 'super-admin') return true
+      // Others can only see active and non-deleted organizations
+      return {
+        status: {
+          equals: 'active',
+        },
+        deletedAt: {
+          exists: false,
+        },
+      }
+    },
+    // Only staff and super-admins can create organizations
+    create: ({ req: { user } }) => {
+      return user?.role === 'staff' || user?.role === 'super-admin'
+    },
+    // Org admins can update their own organization, super-admins can update all
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'super-admin') return true
+      if (user.role === 'org-admin' && user.organization) {
+        return {
+          id: {
+            equals: user.organization,
+          },
+        }
+      }
+      return false
+    },
+    // Only super-admins can delete organizations
+    delete: ({ req: { user } }) => {
+      return user?.role === 'super-admin'
+    },
   },
   fields: [
     {
@@ -37,6 +73,10 @@ export const Organizations: CollectionConfig = {
       required: true,
       index: true,
       options: [
+        {
+          label: 'Company',
+          value: 'company',
+        },
         {
           label: 'Scientific Circle',
           value: 'scientific-circle',
@@ -76,27 +116,12 @@ export const Organizations: CollectionConfig = {
       },
     },
     {
-      name: 'fullDescription',
-      type: 'richText',
-      admin: {
-        description: 'Detailed information about the organization',
-      },
-    },
-    {
       name: 'logo',
       type: 'upload',
       relationTo: 'media',
       admin: {
         description: 'Organization logo',
         position: 'sidebar',
-      },
-    },
-    {
-      name: 'coverImage',
-      type: 'upload',
-      relationTo: 'media',
-      admin: {
-        description: 'Cover image for organization page',
       },
     },
     {
@@ -118,80 +143,6 @@ export const Organizations: CollectionConfig = {
       type: 'text',
       admin: {
         description: 'Organization website URL',
-      },
-    },
-    {
-      name: 'socialMedia',
-      type: 'group',
-      fields: [
-        {
-          name: 'facebook',
-          type: 'text',
-          admin: {
-            description: 'Facebook profile URL',
-          },
-        },
-        {
-          name: 'instagram',
-          type: 'text',
-          admin: {
-            description: 'Instagram profile URL',
-          },
-        },
-        {
-          name: 'twitter',
-          type: 'text',
-          admin: {
-            description: 'Twitter/X profile URL',
-          },
-        },
-        {
-          name: 'linkedin',
-          type: 'text',
-          admin: {
-            description: 'LinkedIn profile URL',
-          },
-        },
-        {
-          name: 'youtube',
-          type: 'text',
-          admin: {
-            description: 'YouTube channel URL',
-          },
-        },
-      ],
-      admin: {
-        description: 'Social media profiles',
-      },
-    },
-    {
-      name: 'location',
-      type: 'group',
-      fields: [
-        {
-          name: 'building',
-          type: 'text',
-          admin: {
-            description: 'Building name or number',
-          },
-        },
-        {
-          name: 'room',
-          type: 'text',
-          admin: {
-            description: 'Room number',
-          },
-        },
-        {
-          name: 'address',
-          type: 'text',
-          admin: {
-            description: 'Full address',
-          },
-        },
-      ],
-      admin: {
-        description: 'Physical location details',
       },
     },
     {
@@ -224,22 +175,6 @@ export const Organizations: CollectionConfig = {
       },
     },
     {
-      name: 'foundedYear',
-      type: 'number',
-      admin: {
-        description: 'Year the organization was founded',
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'memberCount',
-      type: 'number',
-      admin: {
-        description: 'Number of active members',
-        position: 'sidebar',
-      },
-    },
-    {
       name: 'tags',
       type: 'array',
       fields: [
@@ -253,16 +188,117 @@ export const Organizations: CollectionConfig = {
       },
     },
     {
-      name: 'featured',
-      type: 'checkbox',
-      defaultValue: false,
-      index: true,
+      name: 'createdBy',
+      type: 'relationship',
+      relationTo: 'users',
       admin: {
-        description: 'Feature this organization on the homepage',
+        description: 'User who created this organization',
         position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'updatedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who last updated this organization',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'deletedAt',
+      type: 'date',
+      admin: {
+        description: 'Soft delete timestamp',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'deletedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who deleted this organization',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, operation }) => {
+        // Auto-generate slug from name if not provided
+        if (data?.name && (!data?.slug || operation === 'create')) {
+          const baseSlug = slugify(data.name)
+          data.slug = await generateUniqueSlug(
+            baseSlug,
+            'organizations',
+            req.payload,
+            operation === 'update' ? data.id : undefined,
+          )
+        }
+        return data
+      },
+    ],
+    beforeChange: [
+      ({ req, operation, data }) => {
+        if (req.user) {
+          if (operation === 'create') {
+            data.createdBy = req.user.id
+          }
+          data.updatedBy = req.user.id
+        }
+        return data
+      },
+    ],
+    // TEMPORARILY DISABLED - causes performance issues
+    // TODO: Optimize or move to API endpoint
+    // afterRead: [
+    //   async ({ doc, req }) => {
+    //     if (!doc || !doc.id) return doc
+    //     const upcomingEvents = await req.payload.find({
+    //       collection: 'events',
+    //       where: { organization: { equals: doc.id }, eventDate: { greater_than: new Date().toISOString() } },
+    //       limit: 0,
+    //     })
+    //     const totalEvents = await req.payload.find({
+    //       collection: 'events',
+    //       where: { organization: { equals: doc.id } },
+    //       limit: 0,
+    //     })
+    //     const activeMembers = await req.payload.find({
+    //       collection: 'users',
+    //       where: { organization: { equals: doc.id }, isActive: { equals: true } },
+    //       limit: 0,
+    //     })
+    //     return {
+    //       ...doc,
+    //       upcomingEventsCount: upcomingEvents.totalDocs,
+    //       totalEventsCount: totalEvents.totalDocs,
+    //       activeMembersCount: activeMembers.totalDocs,
+    //     }
+    //   },
+    // ],
+    beforeDelete: [
+      async ({ req, id }) => {
+        // Soft delete instead of hard delete
+        await req.payload.update({
+          collection: 'organizations',
+          id,
+          data: {
+            deletedAt: new Date().toISOString(),
+            deletedBy: req.user?.id,
+          },
+        })
+
+        // Return false to prevent actual deletion
+        return false
+      },
+    ],
+  },
   versions: {
     drafts: true,
   },
