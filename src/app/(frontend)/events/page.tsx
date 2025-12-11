@@ -3,8 +3,7 @@ import { getPayload } from 'payload'
 import React from 'react'
 
 import { EventCard } from '@/components/EventCard'
-import { Navigation } from '@/components/Navigation'
-import config from '@/payload.config'
+import payloadConfig from '@/payload.config'
 import '../styles.css'
 
 export const metadata = {
@@ -13,7 +12,6 @@ export const metadata = {
 }
 
 export default async function EventsArchivePage() {
-  const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
 
   const eventsResult = await payload.find({
@@ -23,8 +21,7 @@ export default async function EventsArchivePage() {
 
   return (
     <div className="events-archive">
-      <Navigation />
-      <div className="archive-container">
+      <div className="container archive-container">
         <Link href="/" className="back-link">
           ← Powrót
         </Link>
@@ -34,7 +31,7 @@ export default async function EventsArchivePage() {
         </header>
 
         {eventsResult.docs.length > 0 ? (
-          <div className="cards-grid">
+          <div className="events-grid">
             {eventsResult.docs.map((event) => (
               <EventCard
                 key={event.id}
@@ -52,7 +49,7 @@ export default async function EventsArchivePage() {
             <div className="empty-icon">📅</div>
             <h2>Brak wydarzeń</h2>
             <p>Nie znaleziono żadnych wydarzeń</p>
-            <Link href="/" className="button-primary">
+            <Link href="/" className="btn btn-primary" style={{ marginTop: 'var(--spacing-6)' }}>
               Powrót do strony głównej
             </Link>
           </div>

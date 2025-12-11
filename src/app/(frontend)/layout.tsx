@@ -1,18 +1,23 @@
 import React from 'react'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { Navigation } from '@/components/Navigation'
 import './styles.css'
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description: 'Smart Campus - platforma wydarzeń kampusowych',
+  title: 'Smart Campus',
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en">
+    <html lang="pl">
       <body>
-        <main>{children}</main>
+        <AuthProvider>
+          <Navigation />
+          <main>{children}</main>
+        </AuthProvider>
       </body>
     </html>
   )

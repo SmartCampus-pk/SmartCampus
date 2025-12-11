@@ -21,14 +21,14 @@ export function EventCard({
   className,
 }: EventCardProps) {
   return (
-    <Link href={`/events/${id}`} className={`card ${className || ''}`}>
-      <div className="card-content">
+    <Link href={`/events/${id}`} className={`event-card ${className || ''}`}>
+      <div className="event-content">
         <h3 className="card-title">{title}</h3>
         <p className="card-description">{description}</p>
         {participantsCount !== undefined && participantsCount !== null && (
-          <p className="card-participants">
+          <div className="card-participants">
             👥 {participantsCount} {participantsCount === 1 ? 'uczestnik' : 'uczestników'}
-          </p>
+          </div>
         )}
         {(eventDate || location) && (
           <div className="card-footer">

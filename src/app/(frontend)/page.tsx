@@ -4,14 +4,12 @@ import { getPayload } from 'payload'
 import React from 'react'
 
 import { FeatureCard } from '@/components/FeatureCard'
-import { Navigation } from '@/components/Navigation'
 import { Separator } from '@/components/Separator'
-import config from '@/payload.config'
+import payloadConfig from '@/payload.config'
 import './styles.css'
 
 export default async function HomePage() {
   const headers = await getHeaders()
-  const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
 
@@ -23,22 +21,27 @@ export default async function HomePage() {
 
   return (
     <div className="home">
-      <Navigation />
-      <div className="content">
-        <section className="hero-section">
-          <h1>Smart Campus</h1>
-          <p>Twoja centralna platforma do odkrywania i zarządzania wydarzeniami kampusowymi</p>
-          <Link href="/events" className="cta-button">
+      <section className="hero">
+        <div className="container">
+          <h1>Odkryj wydarzenia kampusowe</h1>
+          <p>Twoja centralna platforma do odkrywania, organizacji i udziału w życiu akademickim</p>
+          <Link
+            href="/events"
+            className="btn btn-primary"
+            style={{ marginTop: 'var(--spacing-6)' }}
+          >
             Przeglądaj wydarzenia →
           </Link>
-        </section>
+        </div>
+      </section>
 
-        <section className="features-section">
-          <h2>Wszystko czego potrzebujesz</h2>
+      <div className="container">
+        <section style={{ paddingTop: 'var(--spacing-12)', paddingBottom: 'var(--spacing-12)' }}>
+          <h2 style={{ textAlign: 'center' }}>Wszystko czego potrzebujesz</h2>
           <p className="section-subtitle">
             Kompleksowe rozwiązanie do zarządzania życiem kampusowym
           </p>
-          <div className="features-grid">
+          <div className="cards-grid">
             <FeatureCard
               icon="📅"
               title="Kalendarz wydarzeń"
@@ -69,17 +72,18 @@ export default async function HomePage() {
               {eventsResult.docs.map((event) => (
                 <Link key={event.id} href={`/events/${event.id}`} className="event-card">
                   <div className="event-content">
-                    <h3>{event.title}</h3>
-                    <p className="event-description">{event.description}</p>
+                    <h3 className="card-title">{event.title}</h3>
+                    <p className="card-description">{event.description}</p>
                     {event.participantsCount !== undefined && event.participantsCount !== null && (
-                      <p className="event-participants">
+                      <div className="card-participants">
                         👥 {event.participantsCount}{' '}
                         {event.participantsCount === 1 ? 'uczestnik' : 'uczestników'}
-                      </p>
+                      </div>
                     )}
-                    <div className="event-meta">
+                    <div className="card-footer">
                       {event.eventDate && (
-                        <time className="event-date">
+                        <time className="card-meta">
+                          📅{' '}
                           {new Date(event.eventDate).toLocaleDateString('pl-PL', {
                             year: 'numeric',
                             month: 'long',
@@ -87,7 +91,7 @@ export default async function HomePage() {
                           })}
                         </time>
                       )}
-                      {event.location && <p className="event-location">📍 {event.location}</p>}
+                      {event.location && <span className="card-meta">📍 {event.location}</span>}
                     </div>
                   </div>
                 </Link>
@@ -102,24 +106,19 @@ export default async function HomePage() {
         )}
 
         {eventsResult.docs.length === 0 && (
-          <div className="no-events">
-            <p>Brak dostępnych wydarzeń.</p>
-            <Link href={payloadConfig.routes.admin} className="admin">
-              Dodaj wydarzenie w panelu administracyjnym
+          <div className="empty-state">
+            <div className="empty-icon">📅</div>
+            <h3>Brak wydarzeń</h3>
+            <p>Nie ma jeszcze żadnych wydarzeń do wyświetlenia.</p>
+            <Link
+              href="/admin"
+              className="btn btn-primary"
+              style={{ marginTop: 'var(--spacing-6)' }}
+            >
+              Dodaj wydarzenie
             </Link>
           </div>
         )}
-
-        <div className="links">
-          <Link
-            className="admin"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Panel administracyjny
-          </Link>
-        </div>
       </div>
     </div>
   )
