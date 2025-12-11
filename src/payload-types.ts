@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     events: Event;
+    organizations: Organization;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -123,6 +125,84 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  /**
+   * User first name
+   */
+  firstName: string;
+  /**
+   * User last name
+   */
+  lastName: string;
+  /**
+   * User profile picture
+   */
+  avatar?: (string | null) | Media;
+  /**
+   * User role in the system
+   */
+  role: 'student' | 'org-admin' | 'staff' | 'super-admin';
+  /**
+   * Organization the user belongs to (N:1 relationship)
+   */
+  organization?: (string | null) | Organization;
+  /**
+   * Student ID number (index number)
+   */
+  studentId?: string | null;
+  /**
+   * Short biography or description
+   */
+  bio?: string | null;
+  /**
+   * Phone number
+   */
+  phone?: string | null;
+  /**
+   * Faculty name
+   */
+  faculty?: string | null;
+  /**
+   * Field of study
+   */
+  fieldOfStudy?: string | null;
+  /**
+   * Current year of study
+   */
+  yearOfStudy?: number | null;
+  /**
+   * User interests and areas of focus
+   */
+  interests?:
+    | {
+        interest?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Notification preferences
+   */
+  notifications?: {
+    /**
+     * Receive email notifications
+     */
+    emailNotifications?: boolean | null;
+    /**
+     * Receive event reminders
+     */
+    eventReminders?: boolean | null;
+    /**
+     * Receive organization updates
+     */
+    organizationUpdates?: boolean | null;
+  };
+  /**
+   * Account active status
+   */
+  isActive?: boolean | null;
+  /**
+   * Last login timestamp
+   */
+  lastLoginAt?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -162,6 +242,137 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations".
+ */
+export interface Organization {
+  id: string;
+  /**
+   * Official name of the organization
+   */
+  name: string;
+  /**
+   * URL-friendly version of the name
+   */
+  slug: string;
+  /**
+   * Type of organization
+   */
+  type: 'scientific-circle' | 'student-organization' | 'faculty' | 'department' | 'student-government' | 'other';
+  /**
+   * Short description of the organization
+   */
+  description: string;
+  /**
+   * Detailed information about the organization
+   */
+  fullDescription?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Organization logo
+   */
+  logo?: (string | null) | Media;
+  /**
+   * Cover image for organization page
+   */
+  coverImage?: (string | null) | Media;
+  /**
+   * Primary contact email
+   */
+  contactEmail?: string | null;
+  /**
+   * Contact phone number
+   */
+  contactPhone?: string | null;
+  /**
+   * Organization website URL
+   */
+  website?: string | null;
+  /**
+   * Social media profiles
+   */
+  socialMedia?: {
+    /**
+     * Facebook profile URL
+     */
+    facebook?: string | null;
+    /**
+     * Instagram profile URL
+     */
+    instagram?: string | null;
+    /**
+     * Twitter/X profile URL
+     */
+    twitter?: string | null;
+    /**
+     * LinkedIn profile URL
+     */
+    linkedin?: string | null;
+    /**
+     * YouTube channel URL
+     */
+    youtube?: string | null;
+  };
+  /**
+   * Physical location details
+   */
+  location?: {
+    /**
+     * Building name or number
+     */
+    building?: string | null;
+    /**
+     * Room number
+     */
+    room?: string | null;
+    /**
+     * Full address
+     */
+    address?: string | null;
+  };
+  /**
+   * Current status of the organization
+   */
+  status: 'active' | 'inactive' | 'pending' | 'suspended';
+  /**
+   * Year the organization was founded
+   */
+  foundedYear?: number | null;
+  /**
+   * Number of active members
+   */
+  memberCount?: number | null;
+  /**
+   * Tags for categorization and search
+   */
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Feature this organization on the homepage
+   */
+  featured?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
@@ -188,17 +399,120 @@ export interface Event {
     [k: string]: unknown;
   } | null;
   /**
+   * Organization hosting this event (N:1 relationship)
+   */
+  organization: string | Organization;
+  /**
    * Date and time of the event
    */
   eventDate: string;
+  /**
+   * End date and time (for multi-day events)
+   */
+  endDate?: string | null;
   /**
    * Event location
    */
   location?: string | null;
   /**
+   * Detailed location information
+   */
+  locationDetails?: {
+    /**
+     * Building name or number
+     */
+    building?: string | null;
+    /**
+     * Room number
+     */
+    room?: string | null;
+    /**
+     * Full address
+     */
+    address?: string | null;
+    /**
+     * Is this an online event?
+     */
+    isOnline?: boolean | null;
+    /**
+     * Link for online event (e.g., Zoom, Teams)
+     */
+    onlineLink?: string | null;
+  };
+  /**
    * Featured image for the event
    */
   image?: (string | null) | Media;
+  /**
+   * Additional images for the event
+   */
+  gallery?:
+    | {
+        image?: (string | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Event category
+   */
+  category: 'workshop' | 'conference' | 'seminar' | 'social' | 'competition' | 'meeting' | 'other';
+  /**
+   * Maximum number of participants
+   */
+  capacity?: number | null;
+  /**
+   * Number of registered participants
+   */
+  registeredCount?: number | null;
+  /**
+   * Is registration required for this event?
+   */
+  registrationRequired?: boolean | null;
+  /**
+   * Registration deadline
+   */
+  registrationDeadline?: string | null;
+  /**
+   * External registration link
+   */
+  registrationLink?: string | null;
+  /**
+   * Current event status
+   */
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  /**
+   * Feature this event on the homepage
+   */
+  featured?: boolean | null;
+  /**
+   * Tags for categorization and search
+   */
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Event organizers
+   */
+  organizers?:
+    | {
+        organizer?: (string | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Event sponsors
+   */
+  sponsors?:
+    | {
+        name?: string | null;
+        logo?: (string | null) | Media;
+        website?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -238,6 +552,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: string | Event;
+      } | null)
+    | ({
+        relationTo: 'organizations';
+        value: string | Organization;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -286,6 +604,32 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  avatar?: T;
+  role?: T;
+  organization?: T;
+  studentId?: T;
+  bio?: T;
+  phone?: T;
+  faculty?: T;
+  fieldOfStudy?: T;
+  yearOfStudy?: T;
+  interests?:
+    | T
+    | {
+        interest?: T;
+        id?: T;
+      };
+  notifications?:
+    | T
+    | {
+        emailNotifications?: T;
+        eventReminders?: T;
+        organizationUpdates?: T;
+      };
+  isActive?: T;
+  lastLoginAt?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -330,9 +674,99 @@ export interface EventsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   content?: T;
+  organization?: T;
   eventDate?: T;
+  endDate?: T;
   location?: T;
+  locationDetails?:
+    | T
+    | {
+        building?: T;
+        room?: T;
+        address?: T;
+        isOnline?: T;
+        onlineLink?: T;
+      };
   image?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  category?: T;
+  capacity?: T;
+  registeredCount?: T;
+  registrationRequired?: T;
+  registrationDeadline?: T;
+  registrationLink?: T;
+  status?: T;
+  featured?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  organizers?:
+    | T
+    | {
+        organizer?: T;
+        id?: T;
+      };
+  sponsors?:
+    | T
+    | {
+        name?: T;
+        logo?: T;
+        website?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "organizations_select".
+ */
+export interface OrganizationsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  type?: T;
+  description?: T;
+  fullDescription?: T;
+  logo?: T;
+  coverImage?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  website?: T;
+  socialMedia?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        twitter?: T;
+        linkedin?: T;
+        youtube?: T;
+      };
+  location?:
+    | T
+    | {
+        building?: T;
+        room?: T;
+        address?: T;
+      };
+  status?: T;
+  foundedYear?: T;
+  memberCount?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  featured?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
