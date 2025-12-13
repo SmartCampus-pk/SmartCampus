@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import '../../styles.css'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
@@ -225,5 +225,29 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="auth-page">
+          <div className="auth-container">
+            <div className="auth-card">
+              <div className="auth-header">
+                <h1>Zarejestruj się</h1>
+                <p>Dołącz do społeczności Smart Campus</p>
+              </div>
+              <div style={{ textAlign: 'center', padding: '2rem' }}>
+                <span className="spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   )
 }

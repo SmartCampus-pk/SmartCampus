@@ -23,7 +23,7 @@ interface AuthContextType {
     firstName: string,
     lastName: string,
   ) => Promise<{ success: boolean; error?: string }>
-  logout: () => void
+  logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
 
@@ -91,14 +91,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true }
   }
 
-  const logout = () => {
-    // Call logout endpoint (fire and forget)
-    api.auth.logout()
-
-    // Clear local state
-    localStorage.removeItem('token')
-    setToken(null)
-    setUser(null)
+  const logout = async () => {
+    try {
+      // Call logout endpoint
+      await api.auth.logout()
+    } catch (error) {
+      // Even if API call fails, we still want to clear local state
+      console.error('Logout API error:', error)
+    } finally {
+      // Always clear local state regardless of API response
+      localStorage.removeItem('token')
+      setToken(null)
+      setUser(null)
+    }
   }
 
   const refreshUser = async () => {

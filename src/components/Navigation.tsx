@@ -2,16 +2,32 @@
 
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function Navigation() {
   const { user, logout, isLoading } = useAuth()
+  const router = useRouter()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
     setIsUserMenuOpen(false)
+
+    try {
+      await logout()
+      // Redirect to home page after successful logout
+      router.push('/')
+      router.refresh() // Refresh to clear any cached data
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect even if there was an error
+      router.push('/')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   return (
@@ -75,11 +91,15 @@ export function Navigation() {
                       )}
                     </div>
                     <div className="user-menu-divider" />
-                    <button onClick={handleLogout} className="user-menu-item">
+                    <button
+                      onClick={handleLogout}
+                      className="user-menu-item"
+                      disabled={isLoggingOut}
+                    >
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M3 2h6v2H3v8h6v2H3a2 2 0 01-2-2V4a2 2 0 012-2zm7 3l4 3-4 3V9H6V7h4V5z" />
                       </svg>
-                      Wyloguj się
+                      {isLoggingOut ? 'Wylogowywanie...' : 'Wyloguj się'}
                     </button>
                   </div>
                 </>
