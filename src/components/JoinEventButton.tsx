@@ -77,7 +77,7 @@ export function JoinEventButton({
       const newCount = data.participantsCount || participantsCount + 1
       setParticipantsCount(newCount)
       onCountUpdate?.(newCount)
-      showSuccessToast('DoÅ‚Ä…czyÅ‚eÅ› do wydarzenia! ðŸŽ‰')
+      showSuccessToast('Do‘'Žczy‘>e‘> do wydarzenia! ?«¦%')
       onSuccess?.()
     }
 
@@ -85,7 +85,7 @@ export function JoinEventButton({
   }
 
   const handleLeave = async () => {
-    const confirmed = confirm('Czy na pewno chcesz opuÅ›ciÄ‡ to wydarzenie?')
+    const confirmed = confirm('Czy na pewno chcesz opu‘>ciŽA to wydarzenie?')
     if (!confirmed) return
 
     setIsLoading(true)
@@ -102,7 +102,7 @@ export function JoinEventButton({
       const newCount = data.participantsCount || Math.max(0, participantsCount - 1)
       setParticipantsCount(newCount)
       onCountUpdate?.(newCount)
-      showSuccessToast('OpusciÅ‚eÅ› wydarzenie')
+      showSuccessToast('Opusci‘>e‘> wydarzenie')
       onSuccess?.()
     }
 
@@ -114,8 +114,9 @@ export function JoinEventButton({
       <button
         onClick={() => router.push(`/login?redirect=/events/${eventId}`)}
         className="btn btn-primary btn-full"
+        aria-label="Login to join event"
       >
-        Zaloguj siÄ™, aby doÅ‚Ä…czyÄ‡
+        Zaloguj siŽt, aby do‘'ŽczyŽA
       </button>
     )
   }
@@ -123,25 +124,39 @@ export function JoinEventButton({
   return (
     <>
       {isJoined ? (
-        <button onClick={handleLeave} disabled={isLoading} className="btn btn-secondary btn-full">
+        <button
+          onClick={handleLeave}
+          disabled={isLoading}
+          className="btn btn-secondary btn-full"
+          data-testid="event-join-button"
+          data-joined="true"
+          aria-label="Leave event"
+        >
           {isLoading ? (
             <>
               <span className="spinner"></span>
               Opuszczanie...
             </>
           ) : (
-            'âœ“ DoÅ‚Ä…czono Â· OpuÅ›Ä‡ wydarzenie'
+            'f~" Do‘'Žczono ¶ Opu‘>ŽA wydarzenie'
           )}
         </button>
       ) : (
-        <button onClick={handleJoin} disabled={isLoading} className="btn btn-primary btn-full">
+        <button
+          onClick={handleJoin}
+          disabled={isLoading}
+          className="btn btn-primary btn-full"
+          data-testid="event-join-button"
+          data-joined="false"
+          aria-label="Join event"
+        >
           {isLoading ? (
             <>
               <span className="spinner"></span>
-              DoÅ‚Ä…czanie...
+              Do‘'Žczanie...
             </>
           ) : (
-            'DoÅ‚Ä…cz do wydarzenia'
+            'Do‘'Žcz do wydarzenia'
           )}
         </button>
       )}
