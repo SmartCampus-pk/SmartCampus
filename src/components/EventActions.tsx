@@ -6,9 +6,10 @@ import { JoinEventButton } from './JoinEventButton'
 interface EventActionsProps {
   eventId: string
   initialParticipantsCount: number
+  initialIsJoined: boolean
 }
 
-export function EventActions({ eventId, initialParticipantsCount }: EventActionsProps) {
+export function EventActions({ eventId, initialParticipantsCount, initialIsJoined }: EventActionsProps) {
   const [participantsCount, setParticipantsCount] = useState(initialParticipantsCount)
 
   const handleCountUpdate = (newCount: number) => {
@@ -27,6 +28,7 @@ export function EventActions({ eventId, initialParticipantsCount }: EventActions
         <JoinEventButton
           eventId={eventId}
           initialParticipantsCount={participantsCount}
+          initialIsJoined={initialIsJoined}
           onCountUpdate={handleCountUpdate}
         />
       </div>

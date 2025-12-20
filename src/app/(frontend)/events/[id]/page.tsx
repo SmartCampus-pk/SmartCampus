@@ -1,3 +1,4 @@
+import { headers as getHeaders } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -36,7 +37,9 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function EventSinglePage({ params }: Props) {
   const { id } = await params
+  const headers = await getHeaders()
   const payload = await getPayload({ config: payloadConfig })
+  const { user } = await payload.auth({ headers })
 
   let event
   try {
@@ -50,6 +53,35 @@ export default async function EventSinglePage({ params }: Props) {
 
   if (!event) {
     notFound()
+  }
+
+  let isJoined = false
+  if (user?.id) {
+    const participation = await payload.find({
+      collection: 'event-participations',
+      where: {
+        and: [
+          {
+            event: {
+              equals: id,
+            },
+          },
+          {
+            user: {
+              equals: user.id,
+            },
+          },
+          {
+            status: {
+              equals: 'going',
+            },
+          },
+        ],
+      },
+      limit: 1,
+    })
+
+    isJoined = participation.docs.length > 0
   }
 
   return (
@@ -82,6 +114,7 @@ export default async function EventSinglePage({ params }: Props) {
             <EventActions
               eventId={event.id}
               initialParticipantsCount={event.participantsCount ?? 0}
+              initialIsJoined={isJoined}
             />
           </header>
 

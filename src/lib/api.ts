@@ -62,6 +62,15 @@ export const api = {
         method: 'POST',
       }),
 
+    participation: (eventId: string, userId: string) =>
+      apiRequest(
+        `/api/event-participations?where[event][equals]=${encodeURIComponent(
+          eventId,
+        )}&where[user][equals]=${encodeURIComponent(
+          userId,
+        )}&where[status][equals]=going&limit=1`,
+      ),
+
     participants: (eventId: string) => apiRequest(`/api/events/${eventId}/participants`),
   },
 }

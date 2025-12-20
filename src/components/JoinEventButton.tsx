@@ -1,13 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
 
 interface JoinEventButtonProps {
   eventId: string
   initialParticipantsCount?: number
+  initialIsJoined?: boolean
   onSuccess?: () => void
   onCountUpdate?: (count: number) => void
 }
@@ -15,16 +16,40 @@ interface JoinEventButtonProps {
 export function JoinEventButton({
   eventId,
   initialParticipantsCount = 0,
+  initialIsJoined = false,
   onSuccess,
   onCountUpdate,
 }: JoinEventButtonProps) {
   const router = useRouter()
   const { user } = useAuth()
-  const [isJoined, setIsJoined] = useState(false)
+  const [isJoined, setIsJoined] = useState(initialIsJoined)
   const [isLoading, setIsLoading] = useState(false)
   const [participantsCount, setParticipantsCount] = useState(initialParticipantsCount)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadParticipation = async () => {
+      if (!user) {
+        setIsJoined(false)
+        return
+      }
+
+      const { data } = await api.events.participation(eventId, user.id)
+      if (!isMounted) return
+
+      const hasParticipation = Array.isArray(data?.docs) && data.docs.length > 0
+      setIsJoined(hasParticipation)
+    }
+
+    loadParticipation()
+
+    return () => {
+      isMounted = false
+    }
+  }, [eventId, user?.id])
 
   const showSuccessToast = (message: string) => {
     setToastMessage(message)
