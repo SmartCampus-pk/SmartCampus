@@ -90,4 +90,13 @@ export const api = {
         body: JSON.stringify({ isRead: true }),
       }),
   },
+
+  organizations: {
+    list: (search?: string) => {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      const query = params.toString()
+      return apiRequest(`/api/organizations${query ? `?${query}` : ''}`)
+    },
+  },
 }

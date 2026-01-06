@@ -51,6 +51,13 @@ export function Navigation() {
               </Link>
             </NavigationMenu.Link>
           </NavigationMenu.Item>
+          <NavigationMenu.Item>
+            <NavigationMenu.Link asChild>
+              <Link href="/organizations" className="navigation-link">
+                Organizacje
+              </Link>
+            </NavigationMenu.Link>
+          </NavigationMenu.Item>
         </NavigationMenu.List>
 
         <div className="navigation-auth">
