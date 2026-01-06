@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { slugify, generateUniqueSlug } from '../lib/slugify'
+import type { Event } from '../payload-types'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -110,7 +111,7 @@ export const Events: CollectionConfig = {
         description: 'End date and time (for multi-day events)',
         position: 'sidebar',
       },
-      validate: (value: Date | null | undefined, { data }: { data: any }) => {
+      validate: (value: Date | null | undefined, { data }: { data: Partial<Event> }) => {
         if (!value || !data?.eventDate) return true
 
         const endDate = new Date(value)
