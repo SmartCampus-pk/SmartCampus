@@ -75,4 +75,19 @@ export const api = {
   me: {
     events: () => apiRequest('/api/me/events'),
   },
+
+  notifications: {
+    list: (page?: number, limit?: number) => {
+      const params = new URLSearchParams()
+      if (page) params.set('page', page.toString())
+      if (limit) params.set('limit', limit.toString())
+      const query = params.toString()
+      return apiRequest(`/api/notifications/me${query ? `?${query}` : ''}`)
+    },
+    markAsRead: (id: string) =>
+      apiRequest(`/api/notifications/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isRead: true }),
+      }),
+  },
 }
