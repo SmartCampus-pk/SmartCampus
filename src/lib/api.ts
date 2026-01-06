@@ -98,5 +98,19 @@ export const api = {
       const query = params.toString()
       return apiRequest(`/api/organizations${query ? `?${query}` : ''}`)
     },
+    get: (id: string) => apiRequest(`/api/organizations/${id}`),
+    update: (
+      id: string,
+      data: {
+        description?: string
+        contactEmail?: string
+        contactPhone?: string
+        website?: string
+      },
+    ) =>
+      apiRequest(`/api/organizations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
   },
 }
