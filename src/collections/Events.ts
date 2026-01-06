@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { slugify, generateUniqueSlug } from '../lib/slugify'
+import { logger } from '../lib/logger'
 import type { Event } from '../payload-types'
 
 export const Events: CollectionConfig = {
@@ -465,6 +466,12 @@ export const Events: CollectionConfig = {
 
           // Create notifications for all subscribed users
           if (title && message && userIds.size > 0) {
+            logger.info('Generating notifications for event update', {
+              eventId,
+              changes,
+              subscribersCount: userIds.size,
+            })
+
             const notificationPromises = Array.from(userIds).map((userId) =>
               req.payload.create({
                 collection: 'notifications',
@@ -480,10 +487,14 @@ export const Events: CollectionConfig = {
             )
 
             await Promise.all(notificationPromises)
+            logger.info('Notifications created successfully', {
+              eventId,
+              notificationsCount: userIds.size,
+            })
           }
         } catch (error) {
           // Log error but don't fail the event update
-          console.error('Error generating notifications:', error)
+          logger.error('Error generating notifications', error, { eventId, changes })
         }
 
         return doc

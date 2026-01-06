@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     const { user } = await payload.auth({ headers: request.headers })
 
     if (!user) {
+      logger.warn('Notifications fetch attempted without authentication')
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
@@ -43,7 +45,23 @@ export async function GET(request: NextRequest) {
       hasPrevPage: notifications.hasPrevPage,
     })
   } catch (error: any) {
-    console.error('Get notifications error:', error)
+    let errorContext: any = {}
+    try {
+      const payloadConfig = await config
+      const payloadInstance = await getPayload({ config: payloadConfig })
+      const authResult = await payloadInstance
+        .auth({ headers: request.headers })
+        .catch(() => ({ user: null }))
+      if (authResult.user) {
+        errorContext.userId = authResult.user.id
+      }
+      const { searchParams } = new URL(request.url)
+      errorContext.page = searchParams.get('page') || '1'
+      errorContext.limit = searchParams.get('limit') || '10'
+    } catch {
+      // auth/params not available
+    }
+    logger.error('Get notifications error', error, errorContext)
     return NextResponse.json(
       { error: error.message || 'Failed to get notifications' },
       { status: 400 },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,12 +55,20 @@ export async function GET(request: NextRequest) {
       depth: 1,
     })
 
+    logger.info('Organizations fetched', { count: organizations.totalDocs, search })
     return NextResponse.json({
       organizations: organizations.docs,
       total: organizations.totalDocs,
     })
   } catch (error: any) {
-    console.error('Get organizations error:', error)
+    let searchTerm = ''
+    try {
+      const { searchParams } = new URL(request.url)
+      searchTerm = searchParams.get('search') || ''
+    } catch {
+      // url not available
+    }
+    logger.error('Get organizations error', error, { search: searchTerm })
     return NextResponse.json(
       { error: error.message || 'Failed to get organizations' },
       { status: 400 },

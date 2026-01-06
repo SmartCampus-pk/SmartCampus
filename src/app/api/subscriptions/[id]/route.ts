@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { logger } from '@/lib/logger'
 
 export async function DELETE(
   request: NextRequest,
@@ -15,6 +16,7 @@ export async function DELETE(
     const { user } = await payload.auth({ headers: request.headers })
 
     if (!user) {
+      logger.warn('Subscription deletion attempted without authentication', { subscriptionId: id })
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
@@ -40,6 +42,11 @@ export async function DELETE(
         : subscription.user
 
     if (subscriptionUserId !== user.id) {
+      logger.warn('Unauthorized subscription deletion attempt', {
+        userId: user.id,
+        subscriptionId: id,
+        subscriptionUserId,
+      })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -49,12 +56,29 @@ export async function DELETE(
       id,
     })
 
+    logger.info('Subscription deleted', { userId: user.id, subscriptionId: id })
     return NextResponse.json({
       subscribed: false,
       message: 'Successfully unsubscribed',
     })
   } catch (error: any) {
-    console.error('Subscription deletion error:', error)
+    let userId = 'unknown'
+    let subId = 'unknown'
+    try {
+      const paramsData = await params
+      subId = paramsData.id
+      const payloadConfig = await config
+      const payloadInstance = await getPayload({ config: payloadConfig })
+      const authResult = await payloadInstance
+        .auth({ headers: request.headers })
+        .catch(() => ({ user: null }))
+      if (authResult.user) {
+        userId = authResult.user.id
+      }
+    } catch {
+      // params/auth not available
+    }
+    logger.error('Subscription deletion error', error, { userId, subscriptionId: subId })
     return NextResponse.json(
       { error: error.message || 'Failed to delete subscription' },
       { status: 400 },

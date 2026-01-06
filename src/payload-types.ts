@@ -479,7 +479,7 @@ export interface Subscription {
   /**
    * Organization being subscribed to (required if type is organization)
    */
-  organization?: string | null;
+  organization?: (string | null) | Organization;
   updatedAt: string;
   createdAt: string;
 }
