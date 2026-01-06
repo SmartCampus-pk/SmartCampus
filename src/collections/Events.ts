@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { slugify, generateUniqueSlug } from '../lib/slugify'
+import { logger } from '../lib/logger'
+import type { Event } from '../payload-types'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -110,7 +112,7 @@ export const Events: CollectionConfig = {
         description: 'End date and time (for multi-day events)',
         position: 'sidebar',
       },
-      validate: (value: Date | null | undefined, { data }: { data: any }) => {
+      validate: (value: Date | null | undefined, { data }: { data: Partial<Event> }) => {
         if (!value || !data?.eventDate) return true
 
         const endDate = new Date(value)
@@ -343,6 +345,159 @@ export const Events: CollectionConfig = {
           data.updatedBy = req.user.id
         }
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, req, previousDoc, operation }) => {
+        // Only generate notifications on update, not on create
+        if (operation !== 'update' || !previousDoc || !doc) {
+          return doc
+        }
+
+        const changes: string[] = []
+        const eventId = doc.id
+
+        // Check for date change
+        if (previousDoc.eventDate && doc.eventDate && previousDoc.eventDate !== doc.eventDate) {
+          changes.push('date')
+        }
+
+        // Check for location change
+        const previousLocation = previousDoc.location || ''
+        const currentLocation = doc.location || ''
+        if (previousLocation !== currentLocation) {
+          changes.push('location')
+        }
+
+        // Check for status change to cancelled
+        if (previousDoc.status !== 'cancelled' && doc.status === 'cancelled') {
+          changes.push('cancelled')
+        }
+
+        // If no relevant changes, skip notification generation
+        if (changes.length === 0) {
+          return doc
+        }
+
+        try {
+          // Find all users subscribed to this event
+          const eventSubscriptions = await req.payload.find({
+            collection: 'subscriptions',
+            where: {
+              and: [
+                {
+                  type: {
+                    equals: 'event',
+                  },
+                },
+                {
+                  event: {
+                    equals: eventId,
+                  },
+                },
+              ],
+            },
+            limit: 1000,
+          })
+
+          // Find all users subscribed to the event's organization
+          const organizationId =
+            typeof doc.organization === 'object' && doc.organization !== null
+              ? doc.organization.id
+              : doc.organization
+
+          const orgSubscriptions = organizationId
+            ? await req.payload.find({
+                collection: 'subscriptions',
+                where: {
+                  and: [
+                    {
+                      type: {
+                        equals: 'organization',
+                      },
+                    },
+                    {
+                      organization: {
+                        equals: organizationId,
+                      },
+                    },
+                  ],
+                },
+                limit: 1000,
+              })
+            : { docs: [] }
+
+          // Combine all unique user IDs
+          const userIds = new Set<string>()
+          eventSubscriptions.docs.forEach((sub) => {
+            const userId =
+              typeof sub.user === 'object' && sub.user !== null ? sub.user.id : sub.user
+            if (userId) userIds.add(userId)
+          })
+          orgSubscriptions.docs.forEach((sub) => {
+            const userId =
+              typeof sub.user === 'object' && sub.user !== null ? sub.user.id : sub.user
+            if (userId) userIds.add(userId)
+          })
+
+          // Generate notification messages based on changes
+          let title = ''
+          let message = ''
+          let notificationType: 'event_update' | 'announcement' = 'event_update'
+
+          if (changes.includes('cancelled')) {
+            title = `Event Cancelled: ${doc.title}`
+            message = `The event "${doc.title}" has been cancelled.`
+            notificationType = 'event_update'
+          } else if (changes.includes('date') && changes.includes('location')) {
+            title = `Event Updated: ${doc.title}`
+            message = `The event "${doc.title}" has been updated. Date and location have changed.`
+            notificationType = 'event_update'
+          } else if (changes.includes('date')) {
+            title = `Event Date Changed: ${doc.title}`
+            const newDate = new Date(doc.eventDate).toLocaleString()
+            message = `The event "${doc.title}" date has been changed to ${newDate}.`
+            notificationType = 'event_update'
+          } else if (changes.includes('location')) {
+            title = `Event Location Changed: ${doc.title}`
+            message = `The event "${doc.title}" location has been changed${currentLocation ? ` to ${currentLocation}` : ''}.`
+            notificationType = 'event_update'
+          }
+
+          // Create notifications for all subscribed users
+          if (title && message && userIds.size > 0) {
+            logger.info('Generating notifications for event update', {
+              eventId,
+              changes,
+              subscribersCount: userIds.size,
+            })
+
+            const notificationPromises = Array.from(userIds).map((userId) =>
+              req.payload.create({
+                collection: 'notifications',
+                data: {
+                  user: userId,
+                  title,
+                  message,
+                  type: notificationType,
+                  relatedEvent: eventId,
+                  isRead: false,
+                },
+              }),
+            )
+
+            await Promise.all(notificationPromises)
+            logger.info('Notifications created successfully', {
+              eventId,
+              notificationsCount: userIds.size,
+            })
+          }
+        } catch (error) {
+          // Log error but don't fail the event update
+          logger.error('Error generating notifications', error, { eventId, changes })
+        }
+
+        return doc
       },
     ],
     beforeDelete: [

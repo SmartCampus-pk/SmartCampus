@@ -9,6 +9,8 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Events } from './collections/Events'
+import { Subscriptions } from './collections/Subscriptions'
+import { Notifications } from './collections/Notifications'
 import { Organizations } from './collections/Organizations'
 import { EventParticipations } from './collections/EventParticipations'
 
@@ -22,7 +24,15 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Events, Organizations, EventParticipations],
+  collections: [
+    Users,
+    Media,
+    Events,
+    Subscriptions,
+    Notifications,
+    Organizations,
+    EventParticipations,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

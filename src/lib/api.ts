@@ -66,11 +66,51 @@ export const api = {
       apiRequest(
         `/api/event-participations?where[event][equals]=${encodeURIComponent(
           eventId,
-        )}&where[user][equals]=${encodeURIComponent(
-          userId,
-        )}&where[status][equals]=going&limit=1`,
+        )}&where[user][equals]=${encodeURIComponent(userId)}&where[status][equals]=going&limit=1`,
       ),
 
     participants: (eventId: string) => apiRequest(`/api/events/${eventId}/participants`),
+  },
+
+  me: {
+    events: () => apiRequest('/api/me/events'),
+  },
+
+  notifications: {
+    list: (page?: number, limit?: number) => {
+      const params = new URLSearchParams()
+      if (page) params.set('page', page.toString())
+      if (limit) params.set('limit', limit.toString())
+      const query = params.toString()
+      return apiRequest(`/api/notifications/me${query ? `?${query}` : ''}`)
+    },
+    markAsRead: (id: string) =>
+      apiRequest(`/api/notifications/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isRead: true }),
+      }),
+  },
+
+  organizations: {
+    list: (search?: string) => {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      const query = params.toString()
+      return apiRequest(`/api/organizations${query ? `?${query}` : ''}`)
+    },
+    get: (id: string) => apiRequest(`/api/organizations/${id}`),
+    update: (
+      id: string,
+      data: {
+        description?: string
+        contactEmail?: string
+        contactPhone?: string
+        website?: string
+      },
+    ) =>
+      apiRequest(`/api/organizations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
   },
 }
