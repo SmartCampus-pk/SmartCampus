@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
+import { ProfileEventItemSkeleton } from '@/components/ProfileEventItemSkeleton'
 import '../styles.css'
 
 interface UserProfile {
@@ -207,8 +208,10 @@ export default function ProfilePage() {
           <h2>Moje wydarzenia</h2>
 
           {eventsLoading ? (
-            <div className="profile-events-loading">
-              <p>Ładowanie wydarzeń...</p>
+            <div className="profile-events-list">
+              {[...Array(3)].map((_, i) => (
+                <ProfileEventItemSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <>
@@ -316,7 +319,12 @@ export default function ProfilePage() {
 
               {events.upcoming.length === 0 && events.past.length === 0 && (
                 <div className="profile-events-empty">
-                  <p>Nie bierzesz udziału w żadnych wydarzeniach.</p>
+                  <div className="empty-icon">📅</div>
+                  <h3>Brak wydarzeń</h3>
+                  <p>
+                    Nie bierzesz udziału w żadnych wydarzeniach. Dołącz do wydarzeń, aby zobaczyć je
+                    tutaj.
+                  </p>
                   <Link
                     href="/events"
                     className="btn btn-primary"

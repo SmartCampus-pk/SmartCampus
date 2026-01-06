@@ -40,7 +40,7 @@ export default async function EventsArchivePage() {
         </header>
 
         {eventsResult.docs && eventsResult.docs.length > 0 ? (
-          <EventsView initialEvents={eventsResult.docs as unknown as Event[]} />
+          <EventsView initialEvents={eventsResult.docs} />
         ) : (
           <div className="empty-state">
             <div className="empty-icon">📅</div>

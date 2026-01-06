@@ -1179,11 +1179,22 @@ input.error {
   margin-bottom: var(--spacing-6);
 }
 
-.profile-events-loading,
 .profile-events-empty {
   text-align: center;
   padding: var(--spacing-8);
   color: var(--color-gray-600);
+}
+
+.profile-events-empty .empty-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-4);
+}
+
+.profile-events-empty h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-2);
 }
 
 .profile-events-group {
@@ -2174,4 +2185,168 @@ input.error {
   font-size: 0.75rem;
   font-weight: 500;
   text-align: center;
+}
+
+.calendar-error,
+.calendar-empty {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--color-gray-600);
+}
+
+/* Loading Skeletons */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-100) 25%,
+    var(--color-gray-50) 50%,
+    var(--color-gray-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Event Card Skeleton */
+.event-card-skeleton {
+  pointer-events: none;
+  cursor: default;
+}
+
+.event-card-skeleton:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 70%;
+  margin-bottom: var(--spacing-3);
+}
+
+.skeleton-description {
+  height: 16px;
+  width: 100%;
+  margin-bottom: var(--spacing-2);
+}
+
+.skeleton-description-short {
+  width: 60%;
+}
+
+.skeleton-meta {
+  height: 14px;
+  width: 120px;
+}
+
+.skeleton-badge {
+  height: 20px;
+  width: 80px;
+  border-radius: var(--radius-full);
+}
+
+.skeleton-button {
+  height: 36px;
+  width: 140px;
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-4);
+}
+
+.skeleton-logo {
+  width: 100%;
+  height: 200px;
+  border-radius: 0;
+}
+
+.skeleton-contact {
+  height: 16px;
+  width: 150px;
+  margin-bottom: var(--spacing-2);
+}
+
+.skeleton-arrow {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Calendar Skeleton */
+.calendar-skeleton {
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+}
+
+.skeleton-calendar-header {
+  height: 50px;
+  width: 100%;
+  margin-bottom: var(--spacing-6);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-calendar-grid {
+  height: 600px;
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* Skeleton specific styles */
+.event-card-skeleton,
+.organization-card-skeleton,
+.notification-item-skeleton,
+.profile-event-item-skeleton {
+  pointer-events: none;
+  cursor: default;
+}
+
+.event-card-skeleton:hover,
+.organization-card-skeleton:hover,
+.notification-item-skeleton:hover,
+.profile-event-item-skeleton:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+.notification-item-skeleton {
+  border-left: 4px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+}
+
+/* Improved empty states */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--color-gray-600);
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-4);
+  opacity: 0.6;
+}
+
+.empty-state h2,
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-3);
+}
+
+.empty-state p {
+  font-size: 1.125rem;
+  color: var(--color-gray-600);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
 }

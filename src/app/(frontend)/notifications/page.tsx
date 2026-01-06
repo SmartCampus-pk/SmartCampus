@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
+import { NotificationItemSkeleton } from '@/components/NotificationItemSkeleton'
 import '../styles.css'
 
 interface Notification {
@@ -78,8 +79,13 @@ export default function NotificationsPage() {
     return (
       <div className="notifications-page">
         <div className="container">
-          <div className="notifications-loading">
-            <p>Ładowanie...</p>
+          <div className="notifications-header">
+            <h1>Powiadomienia</h1>
+          </div>
+          <div className="notifications-list">
+            {[...Array(5)].map((_, i) => (
+              <NotificationItemSkeleton key={i} />
+            ))}
           </div>
         </div>
       </div>
@@ -91,9 +97,18 @@ export default function NotificationsPage() {
     return (
       <div className="notifications-page">
         <div className="container">
+          <div className="notifications-header">
+            <h1>Powiadomienia</h1>
+          </div>
           <div className="notifications-error">
+            <div className="empty-icon">⚠️</div>
+            <h2>Błąd ładowania</h2>
             <p>{error}</p>
-            <button onClick={fetchNotifications} className="btn btn-primary">
+            <button
+              onClick={fetchNotifications}
+              className="btn btn-primary"
+              style={{ marginTop: 'var(--spacing-4)' }}
+            >
               Spróbuj ponownie
             </button>
           </div>
@@ -118,7 +133,10 @@ export default function NotificationsPage() {
           <div className="notifications-empty">
             <div className="notifications-empty-icon">🔔</div>
             <h2>Brak powiadomień</h2>
-            <p>Nie masz jeszcze żadnych powiadomień.</p>
+            <p>
+              Nie masz jeszcze żadnych powiadomień. Powiadomienia pojawią się tutaj, gdy wydarzenia,
+              na które jesteś zapisany, zostaną zaktualizowane.
+            </p>
             <Link
               href="/events"
               className="btn btn-primary"

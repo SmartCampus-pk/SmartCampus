@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { OrganizationCardSkeleton } from '@/components/OrganizationCardSkeleton'
 import '../styles.css'
 
 interface Organization {
@@ -87,16 +88,24 @@ export default function OrganizationsPage() {
 
         {/* Loading state */}
         {isLoading && (
-          <div className="organizations-loading">
-            <p>Ładowanie...</p>
+          <div className="organizations-grid">
+            {[...Array(6)].map((_, i) => (
+              <OrganizationCardSkeleton key={i} />
+            ))}
           </div>
         )}
 
         {/* Error state */}
         {error && !isLoading && (
           <div className="organizations-error">
+            <div className="empty-icon">⚠️</div>
+            <h2>Błąd ładowania</h2>
             <p>{error}</p>
-            <button onClick={fetchOrganizations} className="btn btn-primary">
+            <button
+              onClick={fetchOrganizations}
+              className="btn btn-primary"
+              style={{ marginTop: 'var(--spacing-4)' }}
+            >
               Spróbuj ponownie
             </button>
           </div>
@@ -114,6 +123,15 @@ export default function OrganizationsPage() {
                     ? 'Nie znaleziono organizacji pasujących do wyszukiwania.'
                     : 'Nie znaleziono żadnych organizacji.'}
                 </p>
+                {!debouncedSearch && (
+                  <Link
+                    href="/events"
+                    className="btn btn-primary"
+                    style={{ marginTop: 'var(--spacing-4)' }}
+                  >
+                    Przeglądaj wydarzenia
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="organizations-grid">
