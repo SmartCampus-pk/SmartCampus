@@ -85,7 +85,8 @@ export const Subscriptions: CollectionConfig = {
     },
     {
       name: 'organization',
-      type: 'text',
+      type: 'relationship',
+      relationTo: 'organizations',
       required: false,
       admin: {
         condition: (data) => data.type === 'organization',
