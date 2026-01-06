@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,12 +17,28 @@ interface UserProfile {
   createdAt?: string
 }
 
+interface UserEvent {
+  id: string
+  title: string
+  slug: string
+  description: string
+  eventDate: string
+  location?: string
+  eventStatus: 'upcoming' | 'ongoing' | 'past'
+  participationStatus: string
+}
+
 export default function ProfilePage() {
   const { user: authUser, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [events, setEvents] = useState<{ upcoming: UserEvent[]; past: UserEvent[] }>({
+    upcoming: [],
+    past: [],
+  })
+  const [eventsLoading, setEventsLoading] = useState(false)
 
   useEffect(() => {
     // Redirect if not authenticated
@@ -33,6 +50,7 @@ export default function ProfilePage() {
     // Fetch user data if authenticated
     if (authUser) {
       fetchUserData()
+      fetchUserEvents()
     }
   }, [authUser, authLoading, router])
 
@@ -50,6 +68,25 @@ export default function ProfilePage() {
       setError('Wystąpił błąd podczas pobierania danych')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchUserEvents = async () => {
+    try {
+      setEventsLoading(true)
+      const { data, error: apiError } = await api.me.events()
+      if (apiError || !data) {
+        console.error('Failed to fetch user events:', apiError)
+        return
+      }
+      setEvents({
+        upcoming: data.upcoming || [],
+        past: data.past || [],
+      })
+    } catch (err) {
+      console.error('Error fetching user events:', err)
+    } finally {
+      setEventsLoading(false)
     }
   }
 
@@ -163,6 +200,134 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* My Events Section */}
+        <div className="profile-events-section">
+          <h2>Moje wydarzenia</h2>
+
+          {eventsLoading ? (
+            <div className="profile-events-loading">
+              <p>Ładowanie wydarzeń...</p>
+            </div>
+          ) : (
+            <>
+              {/* Upcoming Events */}
+              {events.upcoming.length > 0 && (
+                <div className="profile-events-group">
+                  <h3 className="profile-events-group-title">Nadchodzące</h3>
+                  <div className="profile-events-list">
+                    {events.upcoming.map((event) => (
+                      <Link
+                        key={event.id}
+                        href={`/events/${event.id}`}
+                        className="profile-event-item"
+                      >
+                        <div className="profile-event-content">
+                          <h4 className="profile-event-title">{event.title}</h4>
+                          <div className="profile-event-meta">
+                            {event.eventDate && (
+                              <span className="profile-event-date">
+                                📅{' '}
+                                {new Date(event.eventDate).toLocaleDateString('pl-PL', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            )}
+                            {event.location && (
+                              <span className="profile-event-location">📍 {event.location}</span>
+                            )}
+                          </div>
+                        </div>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          className="profile-event-arrow"
+                        >
+                          <path
+                            d="M6 12l4-4-4-4"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            fill="none"
+                          />
+                        </svg>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Past Events */}
+              {events.past.length > 0 && (
+                <div className="profile-events-group">
+                  <h3 className="profile-events-group-title">Przeszłe</h3>
+                  <div className="profile-events-list">
+                    {events.past.map((event) => (
+                      <Link
+                        key={event.id}
+                        href={`/events/${event.id}`}
+                        className="profile-event-item"
+                      >
+                        <div className="profile-event-content">
+                          <h4 className="profile-event-title">{event.title}</h4>
+                          <div className="profile-event-meta">
+                            {event.eventDate && (
+                              <span className="profile-event-date">
+                                📅{' '}
+                                {new Date(event.eventDate).toLocaleDateString('pl-PL', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            )}
+                            {event.location && (
+                              <span className="profile-event-location">📍 {event.location}</span>
+                            )}
+                          </div>
+                        </div>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          className="profile-event-arrow"
+                        >
+                          <path
+                            d="M6 12l4-4-4-4"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            fill="none"
+                          />
+                        </svg>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {events.upcoming.length === 0 && events.past.length === 0 && (
+                <div className="profile-events-empty">
+                  <p>Nie bierzesz udziału w żadnych wydarzeniach.</p>
+                  <Link
+                    href="/events"
+                    className="btn btn-primary"
+                    style={{ marginTop: 'var(--spacing-4)' }}
+                  >
+                    Przeglądaj wydarzenia
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

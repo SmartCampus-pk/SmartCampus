@@ -1163,3 +1163,103 @@ input.error {
   font-size: 0.875rem;
   font-weight: 600;
 }
+
+/* Profile Events Section */
+.profile-events-section {
+  margin-top: var(--spacing-10);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile-events-section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-6);
+}
+
+.profile-events-loading,
+.profile-events-empty {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--color-gray-600);
+}
+
+.profile-events-group {
+  margin-bottom: var(--spacing-8);
+}
+
+.profile-events-group:last-child {
+  margin-bottom: 0;
+}
+
+.profile-events-group-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 2px solid var(--color-gray-200);
+}
+
+.profile-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.profile-event-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-event-item:hover {
+  border-color: var(--color-primary-500);
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+}
+
+.profile-event-content {
+  flex: 1;
+}
+
+.profile-event-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-2);
+}
+
+.profile-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+}
+
+.profile-event-date,
+.profile-event-location {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.profile-event-arrow {
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+  margin-left: var(--spacing-4);
+}
+
+.profile-event-item:hover .profile-event-arrow {
+  color: var(--color-primary-500);
+}

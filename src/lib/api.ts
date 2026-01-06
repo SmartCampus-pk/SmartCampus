@@ -66,11 +66,13 @@ export const api = {
       apiRequest(
         `/api/event-participations?where[event][equals]=${encodeURIComponent(
           eventId,
-        )}&where[user][equals]=${encodeURIComponent(
-          userId,
-        )}&where[status][equals]=going&limit=1`,
+        )}&where[user][equals]=${encodeURIComponent(userId)}&where[status][equals]=going&limit=1`,
       ),
 
     participants: (eventId: string) => apiRequest(`/api/events/${eventId}/participants`),
+  },
+
+  me: {
+    events: () => apiRequest('/api/me/events'),
   },
 }
