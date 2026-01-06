@@ -2,13 +2,21 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import React from 'react'
 
-import { EventCard } from '@/components/EventCard'
 import payloadConfig from '@/payload.config'
+import { EventsView } from './EventsView'
 import '../styles.css'
 
 export const metadata = {
   title: 'Wydarzenia - Smart Campus',
   description: 'Przeglądaj wszystkie wydarzenia kampusowe',
+}
+
+interface Event {
+  id: string
+  title: string
+  description: string
+  eventDate: string
+  location?: string
 }
 
 export default async function EventsArchivePage() {
@@ -17,6 +25,7 @@ export default async function EventsArchivePage() {
   const eventsResult = await payload.find({
     collection: 'events',
     sort: '-eventDate',
+    limit: 100,
   })
 
   return (
@@ -30,28 +39,13 @@ export default async function EventsArchivePage() {
           <p className="archive-subtitle">Wszystkie wydarzenia kampusowe w jednym miejscu</p>
         </header>
 
-        {eventsResult.docs.length > 0 ? (
-          <div className="events-grid">
-            {eventsResult.docs.map((event) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                title={event.title}
-                description={event.description}
-                eventDate={event.eventDate}
-                location={event.location || undefined}
-                participantsCount={event.participantsCount ?? undefined}
-              />
-            ))}
-          </div>
+        {eventsResult.docs && eventsResult.docs.length > 0 ? (
+          <EventsView initialEvents={eventsResult.docs as unknown as Event[]} />
         ) : (
           <div className="empty-state">
             <div className="empty-icon">📅</div>
             <h2>Brak wydarzeń</h2>
             <p>Nie znaleziono żadnych wydarzeń</p>
-            <Link href="/" className="btn btn-primary" style={{ marginTop: 'var(--spacing-6)' }}>
-              Powrót do strony głównej
-            </Link>
           </div>
         )}
       </div>
