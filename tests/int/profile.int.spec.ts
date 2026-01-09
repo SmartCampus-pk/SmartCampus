@@ -1,10 +1,22 @@
 import { getPayload, Payload } from 'payload'
 import config from '@/payload.config'
-import { describe, it, beforeAll, expect, beforeEach } from 'vitest'
+import { describe, it, beforeAll, afterAll, expect, beforeEach } from 'vitest'
 
 let payload: Payload
 let testUser: any
 let testEvent: any
+
+const createdIds: {
+  users: string[]
+  events: string[]
+  organizations: string[]
+  participations: string[]
+} = {
+  users: [],
+  events: [],
+  organizations: [],
+  participations: [],
+}
 
 describe('User Profile & Events History', () => {
   beforeAll(async () => {
@@ -25,6 +37,7 @@ describe('User Profile & Events History', () => {
         },
         draft: true,
       })
+      createdIds.users.push(testUser.id)
     } catch (error) {
       const users = await payload.find({
         collection: 'users',
@@ -37,6 +50,9 @@ describe('User Profile & Events History', () => {
       })
       if (users.docs.length > 0) {
         testUser = users.docs[0]
+        if (!createdIds.users.includes(testUser.id)) {
+          createdIds.users.push(testUser.id)
+        }
       }
     }
 
@@ -46,6 +62,10 @@ describe('User Profile & Events History', () => {
       limit: 1,
     })
     if (orgs.docs.length > 0) {
+      const org = orgs.docs[0]
+      if (!createdIds.organizations.includes(org.id)) {
+        createdIds.organizations.push(org.id)
+      }
       const futureDate = new Date()
       futureDate.setDate(futureDate.getDate() + 7)
 
@@ -55,13 +75,14 @@ describe('User Profile & Events History', () => {
           title: `Test Event ${Date.now()}`,
           slug: `test-event-profile-${Date.now()}`,
           description: 'Test event',
-          organization: orgs.docs[0].id,
+          organization: org.id,
           eventDate: futureDate.toISOString(),
           category: 'workshop',
           status: 'upcoming',
         },
         draft: false,
       })
+      createdIds.events.push(testEvent.id)
     }
   })
 
@@ -87,7 +108,7 @@ describe('User Profile & Events History', () => {
     }
 
     // Create participation
-    await payload.create({
+    const participation = await payload.create({
       collection: 'event-participations',
       data: {
         user: testUser.id,
@@ -95,6 +116,7 @@ describe('User Profile & Events History', () => {
         status: 'going',
       },
     })
+    createdIds.participations.push(participation.id)
 
     // Fetch user events
     const participations = await payload.find({
@@ -108,11 +130,35 @@ describe('User Profile & Events History', () => {
     })
 
     expect(participations.docs.length).toBeGreaterThan(0)
-    const participation = participations.docs.find((p) => {
+    const foundParticipation = participations.docs.find((p) => {
       const eventId = typeof p.event === 'object' ? p.event.id : p.event
       return eventId === testEvent.id
     })
-    expect(participation).toBeDefined()
-    expect(participation?.status).toBe('going')
+    expect(foundParticipation).toBeDefined()
+    expect(foundParticipation?.status).toBe('going')
+  })
+
+  afterAll(async () => {
+    // Clean up all created test data
+    for (const id of createdIds.participations) {
+      try {
+        await payload.delete({ collection: 'event-participations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.events) {
+      try {
+        await payload.delete({ collection: 'events', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.organizations) {
+      try {
+        await payload.delete({ collection: 'organizations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.users) {
+      try {
+        await payload.delete({ collection: 'users', id, overrideAccess: true })
+      } catch {}
+    }
   })
 })

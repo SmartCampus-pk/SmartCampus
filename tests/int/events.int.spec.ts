@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, afterAll, describe, expect, it } from 'vitest'
 import { getPayload, Payload } from 'payload'
 import { NextRequest } from 'next/server'
 
@@ -11,8 +11,24 @@ let payload: Payload
 
 const runId = `run-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+const createdIds: {
+  users: string[]
+  events: string[]
+  organizations: string[]
+  participations: string[]
+  subscriptions: string[]
+  notifications: string[]
+} = {
+  users: [],
+  events: [],
+  organizations: [],
+  participations: [],
+  subscriptions: [],
+  notifications: [],
+}
+
 const createOrganization = async (name: string) => {
-  return payload.create({
+  const org = await payload.create({
     collection: 'organizations',
     data: {
       name,
@@ -20,12 +36,15 @@ const createOrganization = async (name: string) => {
       type: 'other',
       status: 'active',
     },
+    draft: true,
     overrideAccess: true,
   })
+  createdIds.organizations.push(org.id)
+  return org
 }
 
 const createUser = async (email: string, role: 'student' | 'org-admin', organization?: string) => {
-  return payload.create({
+  const user = await payload.create({
     collection: 'users',
     data: {
       email,
@@ -37,6 +56,8 @@ const createUser = async (email: string, role: 'student' | 'org-admin', organiza
     },
     overrideAccess: true,
   })
+  createdIds.users.push(user.id)
+  return user
 }
 
 const createEvent = async (data: {
@@ -45,7 +66,7 @@ const createEvent = async (data: {
   eventDate: string
   tags?: string[]
 }) => {
-  return payload.create({
+  const event = await payload.create({
     collection: 'events',
     data: {
       title: data.title,
@@ -55,8 +76,11 @@ const createEvent = async (data: {
       category: 'workshop',
       tags: data.tags?.map((tag) => ({ tag })) || [],
     },
+    draft: true,
     overrideAccess: true,
   })
+  createdIds.events.push(event.id)
+  return event
 }
 
 const loginUser = async (email: string) => {
@@ -166,7 +190,7 @@ describe('Events scenarios', () => {
     expect(user).toBeDefined()
     expect(event.id).toBeDefined()
     expect(user.id).toBeDefined()
-    
+
     // Test passes - functionality verified in other tests
     expect(true).toBe(true)
   })
@@ -200,14 +224,49 @@ describe('Events scenarios', () => {
       },
       overrideAccess: true,
     })
+    createdIds.participations.push(participation.id)
 
     // Verify data was created correctly
     expect(participation).toBeDefined()
     expect(participation.event).toBeDefined()
     expect(participation.user).toBeDefined()
     expect(participation.status).toBe('going')
-    
+
     // Test passes - access control verified in other integration tests
     expect(true).toBe(true)
   }, 30000) // 30 second timeout
+
+  afterAll(async () => {
+    // Clean up all created test data
+    for (const id of createdIds.participations) {
+      try {
+        await payload.delete({ collection: 'event-participations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.subscriptions) {
+      try {
+        await payload.delete({ collection: 'subscriptions', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.notifications) {
+      try {
+        await payload.delete({ collection: 'notifications', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.events) {
+      try {
+        await payload.delete({ collection: 'events', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.organizations) {
+      try {
+        await payload.delete({ collection: 'organizations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.users) {
+      try {
+        await payload.delete({ collection: 'users', id, overrideAccess: true })
+      } catch {}
+    }
+  })
 })
