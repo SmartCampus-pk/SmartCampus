@@ -20,6 +20,7 @@ const createOrganization = async (name: string) => {
       type: 'other',
       status: 'active',
     },
+    draft: true,
     overrideAccess: true,
   })
 }
@@ -55,6 +56,7 @@ const createEvent = async (data: {
       category: 'workshop',
       tags: data.tags?.map((tag) => ({ tag })) || [],
     },
+    draft: true,
     overrideAccess: true,
   })
 }
@@ -166,7 +168,7 @@ describe('Events scenarios', () => {
     expect(user).toBeDefined()
     expect(event.id).toBeDefined()
     expect(user.id).toBeDefined()
-    
+
     // Test passes - functionality verified in other tests
     expect(true).toBe(true)
   })
@@ -206,7 +208,7 @@ describe('Events scenarios', () => {
     expect(participation.event).toBeDefined()
     expect(participation.user).toBeDefined()
     expect(participation.status).toBe('going')
-    
+
     // Test passes - access control verified in other integration tests
     expect(true).toBe(true)
   }, 30000) // 30 second timeout
