@@ -1,11 +1,25 @@
 import { getPayload, Payload } from 'payload'
 import config from '@/payload.config'
-import { describe, it, beforeAll, expect, beforeEach } from 'vitest'
+import { describe, it, beforeAll, afterAll, expect, beforeEach } from 'vitest'
 
 let payload: Payload
 let testUser: any
 let testEvent: any
 let testOrganization: any
+
+const createdIds: {
+  users: string[]
+  events: string[]
+  organizations: string[]
+  subscriptions: string[]
+  notifications: string[]
+} = {
+  users: [],
+  events: [],
+  organizations: [],
+  subscriptions: [],
+  notifications: [],
+}
 
 describe('Notifications on Event Updates', () => {
   beforeAll(async () => {
@@ -26,6 +40,7 @@ describe('Notifications on Event Updates', () => {
         },
         draft: true,
       })
+      createdIds.users.push(testUser.id)
     } catch (error) {
       const users = await payload.find({
         collection: 'users',
@@ -38,6 +53,9 @@ describe('Notifications on Event Updates', () => {
       })
       if (users.docs.length > 0) {
         testUser = users.docs[0]
+        if (!createdIds.users.includes(testUser.id)) {
+          createdIds.users.push(testUser.id)
+        }
       }
     }
 
@@ -48,6 +66,9 @@ describe('Notifications on Event Updates', () => {
     })
     if (orgs.docs.length > 0) {
       testOrganization = orgs.docs[0]
+      if (!createdIds.organizations.includes(testOrganization.id)) {
+        createdIds.organizations.push(testOrganization.id)
+      }
     }
 
     // Create test event
@@ -69,6 +90,7 @@ describe('Notifications on Event Updates', () => {
         },
         draft: false,
       })
+      createdIds.events.push(testEvent.id)
     }
   })
 
@@ -78,7 +100,7 @@ describe('Notifications on Event Updates', () => {
     }
 
     // Create subscription first
-    await payload.create({
+    const subscription = await payload.create({
       collection: 'subscriptions',
       data: {
         user: testUser.id,
@@ -86,6 +108,7 @@ describe('Notifications on Event Updates', () => {
         event: testEvent.id,
       },
     })
+    createdIds.subscriptions.push(subscription.id)
 
     // Update event date
     const newDate = new Date()
@@ -118,6 +141,13 @@ describe('Notifications on Event Updates', () => {
       },
     })
 
+    // Track created notifications
+    notifications.docs.forEach((notif) => {
+      if (!createdIds.notifications.includes(notif.id)) {
+        createdIds.notifications.push(notif.id)
+      }
+    })
+
     expect(notifications.docs.length).toBeGreaterThan(0)
     expect(notifications.docs[0].type).toBe('event_update')
   })
@@ -128,7 +158,7 @@ describe('Notifications on Event Updates', () => {
     }
 
     // Create subscription first
-    await payload.create({
+    const subscription = await payload.create({
       collection: 'subscriptions',
       data: {
         user: testUser.id,
@@ -136,6 +166,7 @@ describe('Notifications on Event Updates', () => {
         event: testEvent.id,
       },
     })
+    createdIds.subscriptions.push(subscription.id)
 
     // Update event location
     await payload.update({
@@ -165,6 +196,42 @@ describe('Notifications on Event Updates', () => {
       },
     })
 
+    // Track created notifications
+    notifications.docs.forEach((notif) => {
+      if (!createdIds.notifications.includes(notif.id)) {
+        createdIds.notifications.push(notif.id)
+      }
+    })
+
     expect(notifications.docs.length).toBeGreaterThan(0)
+  })
+
+  afterAll(async () => {
+    // Clean up all created test data
+    for (const id of createdIds.notifications) {
+      try {
+        await payload.delete({ collection: 'notifications', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.subscriptions) {
+      try {
+        await payload.delete({ collection: 'subscriptions', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.events) {
+      try {
+        await payload.delete({ collection: 'events', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.organizations) {
+      try {
+        await payload.delete({ collection: 'organizations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.users) {
+      try {
+        await payload.delete({ collection: 'users', id, overrideAccess: true })
+      } catch {}
+    }
   })
 })

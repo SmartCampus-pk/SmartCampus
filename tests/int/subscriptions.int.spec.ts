@@ -1,11 +1,23 @@
 import { getPayload, Payload } from 'payload'
 import config from '@/payload.config'
-import { describe, it, beforeAll, expect, beforeEach } from 'vitest'
+import { describe, it, beforeAll, afterAll, expect, beforeEach } from 'vitest'
 
 let payload: Payload
 let testUser: any
 let testEvent: any
 let testOrganization: any
+
+const createdIds: {
+  users: string[]
+  events: string[]
+  organizations: string[]
+  subscriptions: string[]
+} = {
+  users: [],
+  events: [],
+  organizations: [],
+  subscriptions: [],
+}
 
 describe('Subscriptions API', () => {
   beforeAll(async () => {
@@ -26,6 +38,7 @@ describe('Subscriptions API', () => {
         },
         draft: true,
       })
+      createdIds.users.push(testUser.id)
     } catch (error) {
       // User might already exist
       const users = await payload.find({
@@ -39,6 +52,9 @@ describe('Subscriptions API', () => {
       })
       if (users.docs.length > 0) {
         testUser = users.docs[0]
+        if (!createdIds.users.includes(testUser.id)) {
+          createdIds.users.push(testUser.id)
+        }
       }
     }
 
@@ -49,6 +65,9 @@ describe('Subscriptions API', () => {
     })
     if (orgs.docs.length > 0) {
       testOrganization = orgs.docs[0]
+      if (!createdIds.organizations.includes(testOrganization.id)) {
+        createdIds.organizations.push(testOrganization.id)
+      }
       const futureDate = new Date()
       futureDate.setDate(futureDate.getDate() + 7)
 
@@ -65,6 +84,7 @@ describe('Subscriptions API', () => {
         },
         draft: false,
       })
+      createdIds.events.push(testEvent.id)
     }
   })
 
@@ -81,6 +101,7 @@ describe('Subscriptions API', () => {
         event: testEvent.id,
       },
     })
+    createdIds.subscriptions.push(subscription.id)
 
     expect(subscription).toBeDefined()
     expect(subscription.type).toBe('event')
@@ -104,6 +125,7 @@ describe('Subscriptions API', () => {
         organization: testOrganization.id,
       },
     })
+    createdIds.subscriptions.push(subscription.id)
 
     expect(subscription).toBeDefined()
     expect(subscription.type).toBe('organization')
@@ -120,7 +142,7 @@ describe('Subscriptions API', () => {
     }
 
     // Create first subscription
-    await payload.create({
+    const subscription = await payload.create({
       collection: 'subscriptions',
       data: {
         user: testUser.id,
@@ -128,6 +150,7 @@ describe('Subscriptions API', () => {
         event: testEvent.id,
       },
     })
+    createdIds.subscriptions.push(subscription.id)
 
     // Try to create duplicate - should fail
     try {
@@ -142,6 +165,30 @@ describe('Subscriptions API', () => {
       expect.fail('Should have thrown error for duplicate subscription')
     } catch (error: any) {
       expect(error).toBeDefined()
+    }
+  })
+
+  afterAll(async () => {
+    // Clean up all created test data
+    for (const id of createdIds.subscriptions) {
+      try {
+        await payload.delete({ collection: 'subscriptions', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.events) {
+      try {
+        await payload.delete({ collection: 'events', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.organizations) {
+      try {
+        await payload.delete({ collection: 'organizations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.users) {
+      try {
+        await payload.delete({ collection: 'users', id, overrideAccess: true })
+      } catch {}
     }
   })
 })

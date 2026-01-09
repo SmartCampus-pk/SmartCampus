@@ -6,8 +6,18 @@ let payload: Payload
 
 const runId = `e2e-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+const createdIds: {
+  users: string[]
+  events: string[]
+  organizations: string[]
+} = {
+  users: [],
+  events: [],
+  organizations: [],
+}
+
 const createOrganization = async () => {
-  return payload.create({
+  const org = await payload.create({
     collection: 'organizations',
     data: {
       name: `Org ${runId}`,
@@ -15,12 +25,15 @@ const createOrganization = async () => {
       type: 'other',
       status: 'active',
     },
+    draft: true,
     overrideAccess: true,
   })
+  createdIds.organizations.push(org.id)
+  return org
 }
 
 const createUser = async () => {
-  return payload.create({
+  const user = await payload.create({
     collection: 'users',
     data: {
       email: `user-${runId}@example.com`,
@@ -31,10 +44,12 @@ const createUser = async () => {
     },
     overrideAccess: true,
   })
+  createdIds.users.push(user.id)
+  return user
 }
 
 const createEvent = async (organizationId: string) => {
-  return payload.create({
+  const event = await payload.create({
     collection: 'events',
     data: {
       title: `Event ${runId}`,
@@ -44,13 +59,35 @@ const createEvent = async (organizationId: string) => {
       category: 'workshop',
     },
     overrideAccess: true,
+    draft: true,
   })
+  createdIds.events.push(event.id)
+  return event
 }
 
 test.describe('Event join/leave UI', () => {
   test.beforeAll(async () => {
     const payloadConfig = await config
     payload = await getPayload({ config: payloadConfig })
+  })
+
+  test.afterAll(async () => {
+    // Clean up all created test data
+    for (const id of createdIds.events) {
+      try {
+        await payload.delete({ collection: 'events', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.organizations) {
+      try {
+        await payload.delete({ collection: 'organizations', id, overrideAccess: true })
+      } catch {}
+    }
+    for (const id of createdIds.users) {
+      try {
+        await payload.delete({ collection: 'users', id, overrideAccess: true })
+      } catch {}
+    }
   })
 
   test('user joins and leaves event from event page', async ({ page }) => {
@@ -66,9 +103,12 @@ test.describe('Event join/leave UI', () => {
       },
     })
 
-    await page.addInitScript(({ token }) => {
-      localStorage.setItem('token', token)
-    }, { token: loginResult.token })
+    await page.addInitScript(
+      ({ token }) => {
+        localStorage.setItem('token', token || '')
+      },
+      { token: loginResult.token },
+    )
 
     await page.goto(`/events/${event.id}`)
 
