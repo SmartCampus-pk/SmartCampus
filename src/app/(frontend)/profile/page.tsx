@@ -96,8 +96,37 @@ export default function ProfilePage() {
     return (
       <div className="profile-page">
         <div className="container">
-          <div className="profile-loading">
-            <p>Ładowanie...</p>
+          <div className="profile-header">
+            <h1>Mój profil</h1>
+          </div>
+
+          <div className="profile-card">
+            <div className="profile-card-header">
+              <div className="profile-avatar skeleton" />
+              <div className="profile-card-actions">
+                <button className="btn btn-secondary" disabled>
+                  Edytuj profil
+                </button>
+              </div>
+            </div>
+
+            <div className="profile-card-body">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="profile-field">
+                  <div className="skeleton skeleton-text" style={{ height: '20px', width: '80px', marginBottom: '8px' }} />
+                  <div className="skeleton skeleton-text" style={{ height: '24px', width: '100%' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="profile-events-section">
+            <h2>Moje wydarzenia</h2>
+            <div className="profile-events-list">
+              {[...Array(3)].map((_, i) => (
+                <ProfileEventItemSkeleton key={i} />
+              ))}
+            </div>
           </div>
         </div>
       </div>

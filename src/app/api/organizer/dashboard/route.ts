@@ -19,10 +19,12 @@ export async function GET(request: NextRequest) {
     const isOrgAdmin = user.role === 'org-admin' && !!orgId
     const isSuperAdminWithOrg = user.role === 'super-admin' && !!orgId
     if (!isOrgAdmin && !isSuperAdminWithOrg) {
-      return NextResponse.json(
-        { error: 'Forbidden - organizer dashboard is available for organization admins' },
-        { status: 403 },
-      )
+      const errorMsg =
+        user.role === 'org-admin'
+          ? 'Organization not assigned. Please contact administrator to assign your organization.'
+          : 'Organizer dashboard is available for organization admins only. Your current role: ' +
+            user.role
+      return NextResponse.json({ error: 'Forbidden - ' + errorMsg }, { status: 403 })
     }
 
     // Upcoming events for this organization
@@ -46,7 +48,12 @@ export async function GET(request: NextRequest) {
         return {
           id: ev.id,
           title: ev.title,
+          slug: ev.slug,
+          description: ev.description,
           eventDate: ev.eventDate,
+          category: ev.category,
+          location: ev.location,
+          capacity: ev.capacity,
           registrations: {
             total: stats.total,
             going: stats.going,

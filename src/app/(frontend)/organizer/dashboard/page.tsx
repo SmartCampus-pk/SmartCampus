@@ -4,12 +4,18 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { EventCardSkeleton } from '@/components/EventCardSkeleton'
 import './styles.css'
 
 interface EventStats {
   id: string
   title: string
+  slug: string
+  description: string
   eventDate: string
+  category: string
+  location: string
+  capacity: number
   registrations: {
     total: number
     going: number
@@ -98,9 +104,39 @@ export default function OrganizerDashboardPage() {
       </div>
 
       {isLoading && (
-        <div className="dashboard-loading">
-          <div className="loading-spinner" />
-          <p>Ładowanie danych...</p>
+        <div className="dashboard-content">
+          <div className="dashboard-stats">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="stat-card">
+                <div className="skeleton skeleton-icon" style={{ width: '40px', height: '40px' }} />
+                <div className="stat-content">
+                  <div
+                    className="skeleton skeleton-text"
+                    style={{ height: '16px', width: '80px', marginBottom: '8px' }}
+                  />
+                  <div
+                    className="skeleton skeleton-text"
+                    style={{ height: '32px', width: '40px' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h2>Nadchodzące wydarzenia</h2>
+              <Link href="/admin/collections/events/create" className="btn btn-secondary">
+                + Nowe wydarzenie
+              </Link>
+            </div>
+
+            <div className="events-list">
+              {[...Array(3)].map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -139,6 +175,9 @@ export default function OrganizerDashboardPage() {
           <div className="dashboard-section">
             <div className="section-header">
               <h2>Nadchodzące wydarzenia</h2>
+              <Link href="/events" className="btn btn-secondary">
+                + Nowe wydarzenie
+              </Link>
             </div>
 
             {data.upcoming.length === 0 ? (
@@ -146,42 +185,56 @@ export default function OrganizerDashboardPage() {
                 <div className="empty-icon">📅</div>
                 <h3>Brak nadchodzących wydarzeń</h3>
                 <p>Twoja organizacja nie ma jeszcze zaplanowanych wydarzeń.</p>
+                <Link href="/events" className="btn btn-primary">
+                  Utwórz nowe wydarzenie
+                </Link>
               </div>
             ) : (
-              <div className="events-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tytuł</th>
-                      <th>Data</th>
-                      <th>Zapisy</th>
-                      <th>Akcje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.upcoming.map((event) => (
-                      <tr key={event.id}>
-                        <td className="event-title">
-                          <Link href={`/events/${event.id}`}>{event.title}</Link>
-                        </td>
-                        <td className="event-date">{formatDate(event.eventDate)}</td>
-                        <td className="event-stats">
-                          <div className="registrations-badge">
-                            <span className="registration-total">{event.registrations.total}</span>
-                            <span className="registration-detail">
-                              ({event.registrations.going} idzie)
-                            </span>
-                          </div>
-                        </td>
-                        <td className="event-actions">
-                          <Link href={`/events/${event.id}`} className="btn-link">
-                            Szczegóły →
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="events-list">
+                {data.upcoming.map((event) => (
+                  <div key={event.id} className="event-card">
+                    <div className="event-card-header">
+                      <div>
+                        <h3 className="event-card-title">{event.title}</h3>
+                        <p className="event-card-category">{event.category}</p>
+                      </div>
+                      <div className="event-card-date">{formatDate(event.eventDate)}</div>
+                    </div>
+
+                    <p className="event-card-description">{event.description}</p>
+
+                    <div className="event-card-meta">
+                      <div className="meta-item">
+                        <span className="meta-label">Lokalizacja:</span>
+                        <span className="meta-value">{event.location}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Pojemność:</span>
+                        <span className="meta-value">
+                          {event.registrations.total} / {event.capacity}
+                        </span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Potwierdzeni:</span>
+                        <span className="meta-value">{event.registrations.going}</span>
+                      </div>
+                    </div>
+
+                    <div className="event-card-actions">
+                      <Link href={`/events/${event.id}`} className="btn btn-primary btn-small">
+                        Szczegóły
+                      </Link>
+                      <a
+                        href={`/admin/collections/events/${event.id}`}
+                        className="btn btn-secondary btn-small"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Edytuj w CMS
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -15,13 +15,14 @@ export async function GET(request: NextRequest) {
     const results = {
       organizations: [] as string[],
       events: [] as string[],
+      organizationIds: [] as Array<{ name: string; id: string }>,
     }
 
     // Define organizations to create
     const organizationsData = [
       {
         name: 'Koło Naukowe Informatyków',
-        type: 'scientific-circle',
+        type: 'scientific-circle' as const,
         description:
           'Koło naukowe skupiające studentów zainteresowanych programowaniem, algorytmami i nowoczesnymi technologiami.',
         contactEmail: 'kni@university.edu.pl',
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       },
       {
         name: 'Samorząd Studencki',
-        type: 'student-government',
+        type: 'student-government' as const,
         description:
           'Reprezentacja studentów działająca na rzecz poprawy warunków studiowania i organizacji życia studenckiego.',
         contactEmail: 'samorzad@university.edu.pl',
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
       },
       {
         name: 'Wydział Informatyki',
-        type: 'faculty',
+        type: 'faculty' as const,
         description: 'Wydział prowadzący studia informatyczne na wszystkich poziomach kształcenia.',
         contactEmail: 'dziekanat@inf.university.edu.pl',
         website: 'https://inf.university.edu.pl',
@@ -47,14 +48,14 @@ export async function GET(request: NextRequest) {
       },
       {
         name: 'Koło Naukowe Robotyki',
-        type: 'scientific-circle',
+        type: 'scientific-circle' as const,
         description: 'Koło naukowe zajmujące się robotyką, automatyzacją i systemami wbudowanymi.',
         contactEmail: 'knr@university.edu.pl',
         tags: [{ tag: 'robotyka' }, { tag: 'automatyka' }],
       },
       {
         name: 'Klub Sportowy Uniwersytetu',
-        type: 'student-organization',
+        type: 'student-organization' as const,
         description:
           'Organizacja studencka promująca aktywność fizyczną i organizująca wydarzenia sportowe.',
         contactEmail: 'sport@university.edu.pl',
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
       },
       {
         name: 'TechCorp Sp. z o.o.',
-        type: 'company',
+        type: 'company' as const,
         description:
           'Firma technologiczna współpracująca z uniwersytetem w zakresie praktyk studenckich i projektów badawczych.',
         contactEmail: 'kontakt@techcorp.pl',
@@ -117,12 +118,63 @@ export async function GET(request: NextRequest) {
           name: org.name,
         })
         results.organizations.push(org.name)
+        results.organizationIds.push({
+          name: org.name,
+          id: org.id,
+        })
         logger.info(`Created organization: ${org.name}`)
       } catch (error) {
         logger.error(
           `Failed to create organization "${orgData.name}"`,
           error as Record<string, any>,
         )
+      }
+    }
+
+    // Create organization admin users for testing
+    logger.info('Creating organization admin users...')
+    const adminUsers = [] as string[]
+
+    // Create one org-admin for each organization
+    for (const org of createdOrganizations) {
+      try {
+        const adminEmail = `admin-${org.name.toLowerCase().replace(/\s+/g, '-')}@test.pl`
+
+        // Check if admin already exists
+        const existing = await payload.find({
+          collection: 'users',
+          where: {
+            email: {
+              equals: adminEmail,
+            },
+          },
+          limit: 1,
+        })
+
+        if (existing.docs.length > 0) {
+          logger.info(`Admin user for "${org.name}" already exists, skipping...`)
+          adminUsers.push(adminEmail)
+          continue
+        }
+
+        const adminUser = await payload.create({
+          collection: 'users',
+          data: {
+            email: adminEmail,
+            password: 'OrgAdmin2026!', // Strong password: uppercase, digit, special char
+            firstName: 'Admin',
+            lastName: org.name,
+            role: 'org-admin',
+            organization: org.id,
+            isActive: true,
+          },
+          overrideAccess: true,
+        })
+
+        adminUsers.push(adminEmail)
+        logger.info(`Created org-admin: ${adminEmail} for organization "${org.name}"`)
+      } catch (error) {
+        logger.error(`Failed to create org-admin for "${org.name}"`, error as Record<string, any>)
       }
     }
 
@@ -134,7 +186,7 @@ export async function GET(request: NextRequest) {
         title: 'Warsztaty z React',
         description:
           'Praktyczne warsztaty z frameworka React - od podstaw do zaawansowanych technik.',
-        category: 'workshop',
+        category: 'workshop' as const,
         location: 'Sala 101, Budynek A',
         locationDetails: {
           building: 'Budynek A',
@@ -146,7 +198,7 @@ export async function GET(request: NextRequest) {
       {
         title: 'Konferencja Technologii Webowych',
         description: 'Konferencja prezentująca najnowsze trendy w technologiach webowych.',
-        category: 'conference',
+        category: 'conference' as const,
         location: 'Aula Główna',
         locationDetails: {
           building: 'Budynek Główny',
@@ -159,7 +211,7 @@ export async function GET(request: NextRequest) {
         title: 'Seminarium: Sztuczna Inteligencja',
         description:
           'Seminarium naukowe poświęcone zastosowaniom sztucznej inteligencji w praktyce.',
-        category: 'seminar',
+        category: 'seminar' as const,
         location: 'Sala 205, Budynek B',
         locationDetails: {
           building: 'Budynek B',
@@ -171,7 +223,7 @@ export async function GET(request: NextRequest) {
       {
         title: 'Hackathon 2026',
         description: '24-godzinny maraton programistyczny - stwórz innowacyjny projekt!',
-        category: 'competition',
+        category: 'competition' as const,
         location: 'Centrum Konferencyjne',
         locationDetails: {
           building: 'Centrum Konferencyjne',
@@ -184,7 +236,7 @@ export async function GET(request: NextRequest) {
         title: 'Spotkanie Koła Naukowego',
         description:
           'Cotygodniowe spotkanie członków koła naukowego - omówienie projektów i planów.',
-        category: 'meeting',
+        category: 'meeting' as const,
         location: 'Sala 103, Budynek A',
         locationDetails: {
           building: 'Budynek A',
@@ -196,7 +248,7 @@ export async function GET(request: NextRequest) {
       {
         title: 'Wieczór Integracyjny',
         description: 'Spotkanie integracyjne dla nowych członków organizacji.',
-        category: 'social',
+        category: 'social' as const,
         location: 'Klub Studencki',
         locationDetails: {
           building: 'Klub Studencki',
@@ -208,7 +260,7 @@ export async function GET(request: NextRequest) {
       {
         title: 'Webinar: Cloud Computing',
         description: 'Webinar online o chmurze obliczeniowej i jej zastosowaniach.',
-        category: 'workshop',
+        category: 'workshop' as const,
         location: 'Online',
         locationDetails: {
           isOnline: true,
@@ -219,7 +271,7 @@ export async function GET(request: NextRequest) {
       {
         title: 'Warsztaty z Machine Learning',
         description: 'Praktyczne warsztaty z uczenia maszynowego i analizy danych.',
-        category: 'workshop',
+        category: 'workshop' as const,
         location: 'Laboratorium 301, Budynek C',
         locationDetails: {
           building: 'Budynek C',
@@ -330,6 +382,7 @@ export async function GET(request: NextRequest) {
             eventDate: eventData.eventDate.toISOString(),
             location: eventData.location,
             locationDetails: eventData.locationDetails,
+            // @ts-expect-error - category type inference issue from template array
             category: eventData.category,
             capacity: eventData.capacity,
             status: 'upcoming',
@@ -350,16 +403,19 @@ export async function GET(request: NextRequest) {
     logger.info('Database population completed', {
       organizationsCount: results.organizations.length,
       eventsCount: results.events.length,
+      adminUsersCount: adminUsers.length,
       userId: user?.id,
     })
 
     return NextResponse.json({
       success: true,
-      message: `Database populated successfully! Created ${results.organizations.length} organizations and ${results.events.length} events.`,
+      message: `Database populated successfully! Created ${results.organizations.length} organizations, ${adminUsers.length} organization admins and ${results.events.length} events.`,
       results: {
         organizations: results.organizations.length,
         events: results.events.length,
-        organizationNames: results.organizations,
+        organizationDetails: results.organizationIds,
+        adminUsers: adminUsers,
+        adminPassword: 'OrgAdmin2026!',
         eventTitles: results.events.slice(0, 10), // Show first 10 event titles
       },
     })

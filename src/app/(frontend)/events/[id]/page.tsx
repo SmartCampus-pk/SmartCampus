@@ -126,8 +126,6 @@ export default async function EventSinglePage({ params }: Props) {
           </div>
         </article>
 
-        <EventStatsCard eventId={event.id} />
-
         <EventAnnouncements eventId={event.id} />
       </div>
     </div>

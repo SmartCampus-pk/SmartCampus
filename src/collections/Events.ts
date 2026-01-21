@@ -79,7 +79,6 @@ export const Events: CollectionConfig = {
       type: 'relationship',
       relationTo: 'organizations',
       required: true,
-      index: true,
       admin: {
         description: 'Organization hosting this event (N:1 relationship)',
         position: 'sidebar',

@@ -36,14 +36,10 @@ export function Navigation() {
         <Link href="/" className="navigation-brand">
           Smart Campus
         </Link>
-        <NavigationMenu.List className="navigation-list">
-          <NavigationMenu.Item>
-            <NavigationMenu.Link asChild>
-              <Link href="/" className="navigation-link">
-                Strona główna
-              </Link>
-            </NavigationMenu.Link>
-          </NavigationMenu.Item>
+        <NavigationMenu.List
+          className="navigation-list"
+          // style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)' }}
+        >
           <NavigationMenu.Item>
             <NavigationMenu.Link asChild>
               <Link href="/events" className="navigation-link">
@@ -98,6 +94,23 @@ export function Navigation() {
                       )}
                     </div>
                     <div className="user-menu-divider" />
+                    {(user.role === 'org-admin' || user.role === 'super-admin') &&
+                      user.organization && (
+                        <>
+                          <Link
+                            href="/organizer/dashboard"
+                            className="user-menu-item user-menu-item-primary"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M1 3a1 1 0 011-1h12a1 1 0 011 1H1zm7 8a2 2 0 100-4 2 2 0 000 4z" />
+                              <path d="M0 5a2 2 0 012-2h12a2 2 0 012 2v6a2 2 0 01-2 2H2a2 2 0 01-2-2V5zm2-1a1 1 0 00-1 1v6a1 1 0 001 1h12a1 1 0 001-1V5a1 1 0 00-1-1H2z" />
+                            </svg>
+                            Panel Organizatora
+                          </Link>
+                          <div className="user-menu-divider" />
+                        </>
+                      )}
                     <Link
                       href="/notifications"
                       className="user-menu-item"
