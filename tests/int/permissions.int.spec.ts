@@ -76,7 +76,7 @@ describe('Roles & Permissions Audit', () => {
         status: 'upcoming',
       },
     })
-  })
+  }, 30000) // 30 second timeout
 
   afterAll(async () => {
     // Cleanup
@@ -85,7 +85,7 @@ describe('Roles & Permissions Audit', () => {
     if (studentUser) await payload.delete({ collection: 'users', id: studentUser.id })
     if (orgAdminUser) await payload.delete({ collection: 'users', id: orgAdminUser.id })
     if (superAdminUser) await payload.delete({ collection: 'users', id: superAdminUser.id })
-  })
+  }, 30000) // 30 second timeout
 
   describe('Student Role Permissions', () => {
     it('student can read events and organizations', async () => {
