@@ -7,6 +7,7 @@ import React from 'react'
 import payloadConfig from '@/payload.config'
 import { EventActions } from '@/components/EventActions'
 import { EventAnnouncements } from '@/components/EventAnnouncements'
+import { EventStatsCard } from '@/components/EventStatsCard'
 import '../../styles.css'
 
 type Props = {
@@ -124,6 +125,8 @@ export default async function EventSinglePage({ params }: Props) {
             <p>{event.description}</p>
           </div>
         </article>
+
+        <EventStatsCard eventId={event.id} />
 
         <EventAnnouncements eventId={event.id} />
       </div>
