@@ -356,7 +356,6 @@ export interface Organization {
   deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -454,7 +453,6 @@ export interface Event {
   deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * User subscriptions to events or organizations
@@ -772,7 +770,6 @@ export interface EventsSelect<T extends boolean = true> {
   deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -826,7 +823,6 @@ export interface OrganizationsSelect<T extends boolean = true> {
   deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

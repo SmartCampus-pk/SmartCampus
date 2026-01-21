@@ -505,8 +505,13 @@ export const Events: CollectionConfig = {
     ],
     beforeDelete: [
       async ({ req, id }) => {
+        // Skip soft delete logic if there's no user (system/admin operations)
+        if (!req.user) {
+          return false // Allow the delete operation
+        }
+
         // Only super-admins can soft delete
-        if (req.user?.role !== 'super-admin') {
+        if (req.user.role !== 'super-admin') {
           throw new Error('Forbidden - only super-admins can delete events')
         }
 
@@ -517,7 +522,7 @@ export const Events: CollectionConfig = {
           id,
           data: {
             deletedAt: new Date().toISOString(),
-            deletedBy: req.user?.id,
+            deletedBy: req.user.id,
           },
           overrideAccess: true,
         })
@@ -554,9 +559,6 @@ export const Events: CollectionConfig = {
         return doc
       },
     ],
-  },
-  versions: {
-    drafts: true,
   },
   timestamps: true,
 }

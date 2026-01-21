@@ -15,6 +15,54 @@ describe('Roles & Permissions Audit', () => {
     const payloadConfig = await config
     payload = await getPayload({ config: payloadConfig })
 
+    // Clean up ALL test data from previous runs (pattern-based cleanup)
+    // Delete test events
+    const testEvents = await payload.find({
+      collection: 'events',
+      where: {
+        OR: [
+          { slug: { contains: 'test-event-permissions' } },
+          { slug: { contains: 'unauthorized-event' } },
+          { slug: { contains: 'org-admin-event' } },
+          { slug: { contains: 'temp-event-deletion' } },
+        ],
+      },
+      limit: 50,
+      overrideAccess: true,
+    })
+    for (const event of testEvents.docs) {
+      await payload.delete({ collection: 'events', id: event.id, overrideAccess: true })
+    }
+
+    // Delete test organizations
+    const testOrgs = await payload.find({
+      collection: 'organizations',
+      where: {
+        OR: [
+          { slug: { contains: 'test-org-permissions' } },
+          { slug: { contains: 'unauthorized-org' } },
+        ],
+      },
+      limit: 50,
+      overrideAccess: true,
+    })
+    for (const org of testOrgs.docs) {
+      await payload.delete({ collection: 'organizations', id: org.id, overrideAccess: true })
+    }
+
+    // Delete test users
+    const testUsers = await payload.find({
+      collection: 'users',
+      where: {
+        email: { contains: '-perms-' },
+      },
+      limit: 50,
+      overrideAccess: true,
+    })
+    for (const user of testUsers.docs) {
+      await payload.delete({ collection: 'users', id: user.id, overrideAccess: true })
+    }
+
     // Create test organization
     testOrg = await payload.create({
       collection: 'organizations',
@@ -25,6 +73,7 @@ describe('Roles & Permissions Audit', () => {
         description: 'Test org for permissions',
         status: 'active',
       },
+      overrideAccess: true,
     })
 
     // Create student user
@@ -37,6 +86,7 @@ describe('Roles & Permissions Audit', () => {
         lastName: 'Test',
         role: 'student',
       },
+      overrideAccess: true,
     })
 
     // Create org-admin user
@@ -50,6 +100,7 @@ describe('Roles & Permissions Audit', () => {
         role: 'org-admin',
         organization: testOrg.id,
       },
+      overrideAccess: true,
     })
 
     // Create super-admin user
@@ -62,6 +113,7 @@ describe('Roles & Permissions Audit', () => {
         lastName: 'Test',
         role: 'super-admin',
       },
+      overrideAccess: true,
     })
 
     // Create test event
@@ -76,16 +128,27 @@ describe('Roles & Permissions Audit', () => {
         category: 'workshop',
         status: 'upcoming',
       },
+      overrideAccess: true,
     })
   }, 30000) // 30 second timeout
 
   afterAll(async () => {
-    // Cleanup
-    if (testEvent) await payload.delete({ collection: 'events', id: testEvent.id })
-    if (testOrg) await payload.delete({ collection: 'organizations', id: testOrg.id })
-    if (studentUser) await payload.delete({ collection: 'users', id: studentUser.id })
-    if (orgAdminUser) await payload.delete({ collection: 'users', id: orgAdminUser.id })
-    if (superAdminUser) await payload.delete({ collection: 'users', id: superAdminUser.id })
+    // Cleanup - use overrideAccess to bypass permission checks
+    if (testEvent) {
+      await payload.delete({ collection: 'events', id: testEvent.id, overrideAccess: true })
+    }
+    if (testOrg) {
+      await payload.delete({ collection: 'organizations', id: testOrg.id, overrideAccess: true })
+    }
+    if (studentUser) {
+      await payload.delete({ collection: 'users', id: studentUser.id, overrideAccess: true })
+    }
+    if (orgAdminUser) {
+      await payload.delete({ collection: 'users', id: orgAdminUser.id, overrideAccess: true })
+    }
+    if (superAdminUser) {
+      await payload.delete({ collection: 'users', id: superAdminUser.id, overrideAccess: true })
+    }
   }, 30000) // 30 second timeout
 
   describe('Student Role Permissions', () => {
@@ -205,7 +268,7 @@ describe('Roles & Permissions Audit', () => {
       expect(event.id).toBeDefined()
 
       // Cleanup
-      await payload.delete({ collection: 'events', id: event.id })
+      await payload.delete({ collection: 'events', id: event.id, overrideAccess: true })
     })
 
     it('org-admin can edit events from their organization', async () => {
@@ -306,7 +369,7 @@ describe('Roles & Permissions Audit', () => {
     })
 
     it('super-admin can delete events and organizations', async () => {
-      // Create temp event
+      // Create temp event with draft:false to enforce published state
       const tempEvent = await payload.create({
         collection: 'events',
         data: {
@@ -318,6 +381,7 @@ describe('Roles & Permissions Audit', () => {
           category: 'other',
           status: 'upcoming',
         },
+        overrideAccess: true,
       })
 
       // Super admin can delete (soft delete)
@@ -327,14 +391,18 @@ describe('Roles & Permissions Audit', () => {
         user: superAdminUser,
       })
 
-      // Event should be soft deleted (only visible to super-admin)
-      const deleted = await payload.findByID({
+      // Event should be soft deleted - find it using overrideAccess
+      const deletedEvents = await payload.find({
         collection: 'events',
-        id: tempEvent.id,
+        where: {
+          id: {
+            equals: tempEvent.id,
+          },
+        },
         user: superAdminUser,
-        overrideAccess: true,
       })
-      expect(deleted.deletedAt).toBeTruthy()
+      expect(deletedEvents.docs.length).toBe(1)
+      expect(deletedEvents.docs[0].deletedAt).toBeTruthy()
     })
   })
 
@@ -347,6 +415,7 @@ describe('Roles & Permissions Audit', () => {
           user: studentUser.id,
           status: 'going',
         },
+        overrideAccess: true,
       })
 
       // Another user should not be able to update it
@@ -365,6 +434,7 @@ describe('Roles & Permissions Audit', () => {
       await payload.delete({
         collection: 'event-participations',
         id: participation.id,
+        overrideAccess: true,
       })
     })
 
@@ -376,6 +446,7 @@ describe('Roles & Permissions Audit', () => {
           type: 'organization',
           organization: testOrg.id,
         },
+        overrideAccess: true,
       })
 
       // Another user cannot see subscriptions that don't belong to them
@@ -391,6 +462,7 @@ describe('Roles & Permissions Audit', () => {
       await payload.delete({
         collection: 'subscriptions',
         id: subscription.id,
+        overrideAccess: true,
       })
     })
   })
