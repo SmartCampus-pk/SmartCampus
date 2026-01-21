@@ -26,7 +26,8 @@ export const Organizations: CollectionConfig = {
     },
     // Only staff and super-admins can create organizations
     create: ({ req: { user } }) => {
-      return user?.role === 'staff' || user?.role === 'super-admin'
+      if (!user) return false
+      return user.role === 'staff' || user.role === 'super-admin'
     },
     // Org admins can update their own organization, super-admins can update all
     update: ({ req: { user } }) => {
@@ -285,6 +286,7 @@ export const Organizations: CollectionConfig = {
     beforeDelete: [
       async ({ req, id }) => {
         // Soft delete instead of hard delete
+        // Need to bypass access control to update the deleted organization
         await req.payload.update({
           collection: 'organizations',
           id,
@@ -292,6 +294,7 @@ export const Organizations: CollectionConfig = {
             deletedAt: new Date().toISOString(),
             deletedBy: req.user?.id,
           },
+          overrideAccess: true,
         })
 
         // Return false to prevent actual deletion

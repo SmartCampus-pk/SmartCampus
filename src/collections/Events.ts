@@ -24,8 +24,11 @@ export const Events: CollectionConfig = {
         },
       }
     },
-    // Only logged in users can create events
-    create: ({ req: { user } }) => !!user,
+    // Only org-admins and super-admins can create events
+    create: ({ req: { user } }) => {
+      if (!user) return false
+      return user.role === 'org-admin' || user.role === 'super-admin'
+    },
     // Organizers and org-admins of the event's organization can update
     update: ({ req: { user } }) => {
       if (!user) return false
@@ -502,7 +505,13 @@ export const Events: CollectionConfig = {
     ],
     beforeDelete: [
       async ({ req, id }) => {
+        // Only super-admins can soft delete
+        if (req.user?.role !== 'super-admin') {
+          throw new Error('Forbidden - only super-admins can delete events')
+        }
+
         // Soft delete instead of hard delete
+        // Need to bypass access control to update the deleted event
         await req.payload.update({
           collection: 'events',
           id,
@@ -510,6 +519,7 @@ export const Events: CollectionConfig = {
             deletedAt: new Date().toISOString(),
             deletedBy: req.user?.id,
           },
+          overrideAccess: true,
         })
 
         // Return false to prevent actual deletion

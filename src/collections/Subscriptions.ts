@@ -8,6 +8,9 @@ export const Subscriptions: CollectionConfig = {
   },
   access: {
     read: ({ req: { user } }) => {
+      // Super-admins can see all subscriptions
+      if (user?.role === 'super-admin') return true
+
       // Users can only see their own subscriptions
       if (user) {
         return {

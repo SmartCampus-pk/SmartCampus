@@ -9,6 +9,7 @@ describe('Roles & Permissions Audit', () => {
   let superAdminUser: any
   let testOrg: any
   let testEvent: any
+  const timestamp = Date.now()
 
   beforeAll(async () => {
     const payloadConfig = await config
@@ -19,7 +20,7 @@ describe('Roles & Permissions Audit', () => {
       collection: 'organizations',
       data: {
         name: 'Test Organization Permissions',
-        slug: 'test-org-permissions',
+        slug: `test-org-permissions-${timestamp}`,
         type: 'student-organization',
         description: 'Test org for permissions',
         status: 'active',
@@ -30,7 +31,7 @@ describe('Roles & Permissions Audit', () => {
     studentUser = await payload.create({
       collection: 'users',
       data: {
-        email: 'student-perms@test.com',
+        email: `student-perms-${timestamp}@test.com`,
         password: 'Test1234!',
         firstName: 'Student',
         lastName: 'Test',
@@ -42,7 +43,7 @@ describe('Roles & Permissions Audit', () => {
     orgAdminUser = await payload.create({
       collection: 'users',
       data: {
-        email: 'orgadmin-perms@test.com',
+        email: `orgadmin-perms-${timestamp}@test.com`,
         password: 'Test1234!',
         firstName: 'OrgAdmin',
         lastName: 'Test',
@@ -55,7 +56,7 @@ describe('Roles & Permissions Audit', () => {
     superAdminUser = await payload.create({
       collection: 'users',
       data: {
-        email: 'superadmin-perms@test.com',
+        email: `superadmin-perms-${timestamp}@test.com`,
         password: 'Test1234!',
         firstName: 'SuperAdmin',
         lastName: 'Test',
@@ -68,7 +69,7 @@ describe('Roles & Permissions Audit', () => {
       collection: 'events',
       data: {
         title: 'Test Event Permissions',
-        slug: 'test-event-permissions',
+        slug: `test-event-permissions-${timestamp}`,
         description: 'Test event for permissions',
         organization: testOrg.id,
         eventDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -225,6 +226,7 @@ describe('Roles & Permissions Audit', () => {
         data: {
           title: 'Test Event Permissions',
         },
+        overrideAccess: true,
       })
     })
 
@@ -236,6 +238,7 @@ describe('Roles & Permissions Audit', () => {
           description: 'Updated by org admin',
         },
         user: orgAdminUser,
+        overrideAccess: false,
       })
       expect(updated.description).toBe('Updated by org admin')
 
@@ -246,17 +249,19 @@ describe('Roles & Permissions Audit', () => {
         data: {
           description: 'Test org for permissions',
         },
+        overrideAccess: true,
       })
     })
 
     it('org-admin cannot delete events or organizations', async () => {
+      // Org-admin should not be able to delete events (soft delete hook will reject)
       await expect(
         payload.delete({
           collection: 'events',
           id: testEvent.id,
           user: orgAdminUser,
         }),
-      ).rejects.toThrow()
+      ).rejects.toThrow(/Forbidden/)
 
       await expect(
         payload.delete({
@@ -285,6 +290,7 @@ describe('Roles & Permissions Audit', () => {
           title: 'Updated by Super Admin',
         },
         user: superAdminUser,
+        overrideAccess: true,
       })
       expect(updated.title).toBe('Updated by Super Admin')
 
@@ -295,6 +301,7 @@ describe('Roles & Permissions Audit', () => {
         data: {
           title: 'Test Event Permissions',
         },
+        overrideAccess: true,
       })
     })
 
@@ -320,11 +327,12 @@ describe('Roles & Permissions Audit', () => {
         user: superAdminUser,
       })
 
-      // Event should be soft deleted
+      // Event should be soft deleted (only visible to super-admin)
       const deleted = await payload.findByID({
         collection: 'events',
         id: tempEvent.id,
         user: superAdminUser,
+        overrideAccess: true,
       })
       expect(deleted.deletedAt).toBeTruthy()
     })
