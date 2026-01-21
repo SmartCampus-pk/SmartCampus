@@ -113,4 +113,8 @@ export const api = {
         body: JSON.stringify(data),
       }),
   },
+
+  organizer: {
+    dashboard: () => apiRequest('/api/organizer/dashboard'),
+  },
 }
