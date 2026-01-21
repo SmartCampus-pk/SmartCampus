@@ -113,8 +113,14 @@ export default function ProfilePage() {
             <div className="profile-card-body">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="profile-field">
-                  <div className="skeleton skeleton-text" style={{ height: '20px', width: '80px', marginBottom: '8px' }} />
-                  <div className="skeleton skeleton-text" style={{ height: '24px', width: '100%' }} />
+                  <div
+                    className="skeleton skeleton-text"
+                    style={{ height: '20px', width: '80px', marginBottom: '8px' }}
+                  />
+                  <div
+                    className="skeleton skeleton-text"
+                    style={{ height: '24px', width: '100%' }}
+                  />
                 </div>
               ))}
             </div>
