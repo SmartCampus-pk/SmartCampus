@@ -44,6 +44,7 @@ export function JoinEventButton({
       setIsJoined(hasParticipation)
     }
 
+    // Only load participation once on mount, not on every render
     loadParticipation()
 
     return () => {
@@ -138,7 +139,7 @@ export function JoinEventButton({
               Opuszczanie...
             </>
           ) : (
-            'Opuściłeś wydarzenie!'
+            'Opuść wydarzenie'
           )}
         </button>
       ) : (
