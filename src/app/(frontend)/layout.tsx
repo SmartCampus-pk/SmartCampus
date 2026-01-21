@@ -6,6 +6,9 @@ import './styles.css'
 export const metadata = {
   description: 'Smart Campus - platforma wydarzeń kampusowych',
   title: 'Smart Campus',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
