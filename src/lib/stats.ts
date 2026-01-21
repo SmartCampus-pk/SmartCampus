@@ -34,20 +34,14 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
   const going = await payload.count({
     collection: 'event-participations',
     where: {
-      and: [
-        { event: { equals: eventId } },
-        { status: { equals: 'going' } },
-      ],
+      and: [{ event: { equals: eventId } }, { status: { equals: 'going' } }],
     },
   })
 
   const interested = await payload.count({
     collection: 'event-participations',
     where: {
-      and: [
-        { event: { equals: eventId } },
-        { status: { equals: 'interested' } },
-      ],
+      and: [{ event: { equals: eventId } }, { status: { equals: 'interested' } }],
     },
   })
 
@@ -57,7 +51,7 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
   // "attended" approximation: number of "going" if event is in the past
   const now = new Date()
   const eventEnd = event.endDate ? new Date(event.endDate) : new Date(event.eventDate)
-  const attended = eventEnd < now ? (going.totalDocs || 0) : 0
+  const attended = eventEnd < now ? going.totalDocs || 0 : 0
 
   return {
     total,
