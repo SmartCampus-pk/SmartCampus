@@ -1042,6 +1042,118 @@ input.error {
   margin-bottom: var(--spacing-8);
 }
 
+.event-content {
+  margin-top: var(--spacing-6);
+}
+
+/* Rich Text Content Styles */
+.richtext-content {
+  color: var(--color-gray-700);
+  line-height: 1.8;
+}
+
+.richtext-content h1,
+.richtext-content h2,
+.richtext-content h3,
+.richtext-content h4,
+.richtext-content h5,
+.richtext-content h6 {
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
+  color: var(--color-gray-900);
+}
+
+.richtext-content h1 {
+  font-size: 2rem;
+}
+
+.richtext-content h2 {
+  font-size: 1.75rem;
+}
+
+.richtext-content h3 {
+  font-size: 1.5rem;
+}
+
+.richtext-content h4 {
+  font-size: 1.25rem;
+}
+
+.richtext-content p {
+  margin-bottom: var(--spacing-4);
+}
+
+.richtext-content ul,
+.richtext-content ol {
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.richtext-content ul {
+  list-style-type: disc;
+}
+
+.richtext-content ol {
+  list-style-type: decimal;
+}
+
+.richtext-content li {
+  margin-bottom: var(--spacing-2);
+}
+
+.richtext-content li::marker {
+  color: var(--color-primary-500);
+}
+
+.richtext-content blockquote {
+  border-left: 4px solid var(--color-primary-500);
+  padding-left: var(--spacing-4);
+  margin: var(--spacing-5) 0;
+  font-style: italic;
+  color: var(--color-gray-600);
+}
+
+.richtext-content a {
+  color: var(--color-primary-500);
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color var(--transition-base);
+}
+
+.richtext-content a:hover {
+  color: var(--color-primary-600);
+}
+
+.richtext-content code {
+  background: var(--color-gray-100);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: var(--color-primary-700);
+}
+
+.richtext-content strong {
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.richtext-content em {
+  font-style: italic;
+}
+
+.richtext-upload {
+  margin: var(--spacing-6) 0;
+  text-align: center;
+}
+
+.richtext-upload img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
 /* Feature cards */
 .feature-card {
   text-align: center;

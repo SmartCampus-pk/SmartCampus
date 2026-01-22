@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { slugify, generateUniqueSlug } from '../lib/slugify'
 import { logger } from '../lib/logger'
 import type { Event } from '../payload-types'
@@ -73,6 +74,20 @@ export const Events: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       required: true,
+      admin: {
+        description: 'Short summary of the event (used in cards and previews)',
+      },
+    },
+    {
+      name: 'content',
+      type: 'richText',
+      label: 'Detailed Description',
+      editor: lexicalEditor({
+        features: ({ defaultFeatures }) => defaultFeatures,
+      }),
+      admin: {
+        description: 'Full event description with formatting, images, and lists',
+      },
     },
     {
       name: 'organization',

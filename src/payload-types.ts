@@ -368,7 +368,28 @@ export interface Event {
    * URL-friendly version of the title (e.g., "my-event")
    */
   slug: string;
+  /**
+   * Short summary of the event (used in cards and previews)
+   */
   description: string;
+  /**
+   * Full event description with formatting, images, and lists
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * Organization hosting this event (N:1 relationship)
    */
@@ -741,6 +762,7 @@ export interface EventsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
+  content?: T;
   organization?: T;
   eventDate?: T;
   endDate?: T;
