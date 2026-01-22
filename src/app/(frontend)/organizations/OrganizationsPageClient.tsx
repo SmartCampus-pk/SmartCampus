@@ -51,6 +51,9 @@ export function OrganizationsPageClient({ initialOrganizations }: OrganizationsP
   return (
     <div className="organizations-page">
       <div className="container">
+        <Link href="/" className="back-link">
+          ← Powrót
+        </Link>
         <div className="organizations-header">
           <h1>Organizacje</h1>
           <p className="organizations-subtitle">

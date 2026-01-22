@@ -262,6 +262,7 @@ p {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 var(--spacing-6);
+  position: relative;
 }
 
 .navigation-brand {
@@ -280,6 +281,12 @@ p {
   display: flex;
   gap: var(--spacing-6);
   list-style: none;
+}
+
+div:has(> .navigation-list){
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-60%);
 }
 
 .navigation-link {
@@ -1058,7 +1065,7 @@ input.error {
 
 /* Events section */
 .events-section {
-  padding: var(--spacing-12) 0;
+  margin: var(--spacing-12) 0;
 }
 
 .events-section h2 {
@@ -1068,7 +1075,7 @@ input.error {
 /* Archive */
 .events-archive,
 .archive-container {
-  padding-block: var(--spacing-4);
+  margin-block: var(--spacing-4);
 }
 
 .empty-state {
@@ -1786,6 +1793,25 @@ input.error {
   margin: 0;
 }
 
+.organization-single-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.organization-single-title h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.organization-single-main {
+  max-width: 900px;
+}
+
 .organization-single-type {
   display: inline-block;
   padding: var(--spacing-2) var(--spacing-4);
@@ -2373,4 +2399,888 @@ input.error {
   max-width: 500px;
   margin: 0 auto;
   line-height: 1.6;
+}
+
+/* ============================================
+   RESPONSIVE STYLES - MOBILE FIRST
+   ============================================ */
+
+  html:has(.mobile-nav-drawer),
+  body:has(.mobile-nav-drawer) {
+    overflow-x: clip;
+    width: 100vw;
+    min-height: 100vh;
+  }
+
+  body:has(.mobile-nav-drawer.open) {
+   main::after {
+     content: '';
+     position: fixed;
+     inset: 0;
+     background: rgba(0, 0, 0, 0.5);
+     z-index: calc(var(--z-sticky) - 1);
+   }
+  }
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: calc(var(--z-sticky) + 10);
+  position: absolute;
+  right: var(--spacing-4);
+  top: var(--spacing-2);
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 24px;
+  height: 24px;
+}
+
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--color-gray-900);
+  border-radius: 2px;
+  transition: all var(--transition-base);
+  transform-origin: center;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-sticky);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Mobile Navigation Drawer */
+.mobile-nav-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: min(320px, 85vw);
+  height: 100vh;
+  background: white;
+  z-index: calc(var(--z-sticky) + 5);
+  box-shadow: var(--shadow-xl);
+  transition: right var(--transition-slow);
+  overflow-y: auto;
+  padding-top: 80px;
+}
+
+.mobile-nav-drawer.open {
+  right: 0;
+}
+
+.mobile-nav-content {
+  padding: var(--spacing-4);
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  color: var(--color-gray-700);
+  font-weight: 500;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-nav-link:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.mobile-nav-link-primary {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.mobile-nav-link-primary:hover {
+  background: var(--color-primary-100);
+}
+
+.mobile-nav-logout {
+  color: var(--color-error);
+}
+
+.mobile-nav-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.mobile-nav-divider {
+  height: 1px;
+  background: var(--color-gray-200);
+  margin: var(--spacing-4) 0;
+}
+
+.mobile-nav-user {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.mobile-nav-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+}
+
+.mobile-nav-user-name {
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.mobile-nav-user-email {
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.mobile-nav-auth {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.mobile-nav-skeleton {
+  height: 100px;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  animation: shimmer 2s infinite;
+}
+
+/* ============================================
+   TABLET BREAKPOINT (max-width: 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Navigation adjustments */
+  .navigation-container {
+    padding: 0 var(--spacing-4);
+    justify-content: 
+  }
+
+  .navigation-list {
+    position: absolute;
+    gap: var(--spacing-4);
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  /* Calendar adjustments */
+  .calendar-day {
+    min-height: 100px;
+    padding: var(--spacing-1);
+  }
+
+  .calendar-event {
+    font-size: 0.7rem;
+    padding: 2px var(--spacing-1);
+  }
+
+  /* Organizations grid */
+  .organizations-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-4);
+  }
+
+  /* Events grid */
+  .events-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* ============================================
+   MOBILE BREAKPOINT (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Show mobile menu toggle and drawer */
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+  }
+
+  .mobile-nav-drawer {
+    display: block;
+  }
+
+  /* Hide desktop navigation */
+  .navigation-list {
+    display: none;
+  }
+
+  .navigation-auth {
+    display: none;
+  }
+
+  .navigation-container {
+    height: 56px;
+  }
+
+  /* Hero section */
+  .hero {
+    padding: var(--spacing-8) 0;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  }
+
+  .hero p {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-6);
+  }
+
+  /* Container padding */
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+
+  /* Cards grid */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  /* Events grid */
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  /* Events section */
+  .events-section {
+    margin: var(--spacing-8) 0;
+  }
+
+  /* Event card */
+  .event-card {
+    margin: 0;
+  }
+
+  .event-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  .event-content {
+    padding: var(--spacing-4);
+  }
+
+  .card-footer {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  /* Calendar responsive */
+  .calendar-view {
+    padding: var(--spacing-3);
+  }
+
+  .calendar-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+    padding-bottom: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+  }
+
+  .calendar-month-year {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .calendar-month-year h2 {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .calendar-weekday {
+    font-size: 0.7rem;
+    padding: var(--spacing-1);
+  }
+
+  .calendar-day {
+    min-height: 60px;
+    padding: 2px;
+  }
+
+  .calendar-day-number {
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .calendar-day-events {
+    gap: 2px;
+  }
+
+  .calendar-event {
+    font-size: 0.65rem;
+    padding: 1px 3px;
+  }
+
+  .calendar-event-more {
+    font-size: 0.65rem;
+    padding: 1px;
+  }
+
+    /* Hide calendar view on mobile - show only list view */
+  .events-view-controls,
+  .view-toggle {
+    display: none;
+  }
+
+  .calendar-container,
+  .calendar-view {
+    display: none;
+  }
+
+  .view-toggle-button {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: 0.875rem;
+  }
+
+  /* Auth pages */
+  .auth-page {
+    padding: var(--spacing-4);
+    align-items: flex-start;
+    padding-top: var(--spacing-8);
+  }
+
+  .auth-card {
+    padding: var(--spacing-5);
+  }
+
+  .auth-header {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .auth-header h1 {
+    font-size: 1.75rem;
+  }
+
+  /* Profile page */
+  .profile-page {
+    padding: var(--spacing-4) 0;
+  }
+
+  .profile-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .profile-card-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--spacing-4);
+  }
+
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+  }
+
+  .profile-card-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .profile-card-body {
+    padding: var(--spacing-4);
+  }
+
+  .profile-field-value {
+    font-size: 1rem;
+  }
+
+  .profile-events-section {
+    margin-top: var(--spacing-6);
+  }
+
+  .profile-events-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .profile-event-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .profile-event-arrow {
+    display: none;
+  }
+
+  .profile-event-title {
+    font-size: 1rem;
+  }
+
+  .profile-event-meta {
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  /* Notifications page */
+  .notifications-page {
+    padding: var(--spacing-4) 0;
+  }
+
+  .notifications-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .notifications-list {
+    gap: var(--spacing-3);
+  }
+
+  .notification-item {
+    flex-direction: column;
+    padding: var(--spacing-4);
+    gap: var(--spacing-3);
+  }
+
+  .notification-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notification-title {
+    font-size: 1rem;
+  }
+
+  .notification-mark-read {
+    align-self: flex-end;
+  }
+
+  .notifications-pagination {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  /* Organizations page */
+  .organizations-page {
+    padding: var(--spacing-4) 0;
+  }
+
+  .organizations-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .organizations-subtitle {
+    font-size: 1rem;
+  }
+
+  .organizations-search {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .organizations-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .organization-logo {
+    height: 160px;
+  }
+
+  .organization-header {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .organization-type {
+    align-self: flex-start;
+  }
+
+  /* Organization single page */
+  .organization-single-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-4);
+  }
+
+  .organization-single-logo {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+  }
+
+  .organization-single-header-top {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .organization-single-header-top h1 {
+    font-size: 1.5rem;
+  }
+
+  .organization-single-title {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .organization-single-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .organization-single-title .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .organization-single-content,
+  .organization-single-main {
+    max-width: 100%;
+  }
+
+  .organization-section {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .organization-section h2 {
+    font-size: 1.25rem;
+  }
+
+  .organization-description-full {
+    font-size: 1rem;
+  }
+
+  .organization-event-item {
+    padding: var(--spacing-3);
+  }
+
+  .organization-event-title {
+    font-size: 1rem;
+  }
+
+  .organization-event-meta {
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  /* Event single page */
+  .event-single {
+    padding: var(--spacing-4) 0;
+  }
+
+  .event-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .event-meta {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  /* Modal responsive */
+  .modal-overlay {
+    padding: var(--spacing-2);
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-height: 85vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .modal-header {
+    padding: var(--spacing-4);
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-form {
+    padding: var(--spacing-4);
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: 0.9375rem;
+  }
+
+  /* Empty states */
+  .empty-state {
+    padding: var(--spacing-8);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  .empty-state h2,
+  .empty-state h3 {
+    font-size: 1.25rem;
+  }
+
+  .empty-state p {
+    font-size: 1rem;
+  }
+
+  /* Feature cards */
+  .feature-card {
+    padding: var(--spacing-4);
+  }
+
+  .feature-icon {
+    font-size: 2.5rem;
+  }
+
+  .feature-title {
+    font-size: 1.125rem;
+  }
+
+  /* Back link */
+  .back-link {
+    margin-bottom: var(--spacing-4);
+    font-size: 0.9375rem;
+  }
+
+  /* Section spacing */
+  section[style*="padding"] {
+    padding-top: var(--spacing-8) !important;
+    padding-bottom: var(--spacing-8) !important;
+  }
+
+  .separator {
+    margin: var(--spacing-8) 0;
+  }
+
+  /* Toast */
+  .toast {
+    top: auto;
+    bottom: var(--spacing-4);
+    left: var(--spacing-4);
+    right: var(--spacing-4);
+  }
+
+  /* Event announcements */
+  .event-announcements {
+    margin-top: var(--spacing-6);
+  }
+
+  .event-announcements-title {
+    font-size: 1.25rem;
+  }
+
+  .event-announcement-item {
+    padding: var(--spacing-4);
+  }
+
+  .event-announcement-header {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .event-announcement-title {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   SMALL MOBILE BREAKPOINT (max-width: 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  /* Extra small adjustments */
+  .container {
+    padding: 0 var(--spacing-3);
+  }
+
+  h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  h2 {
+    font-size: clamp(1.25rem, 4vw, 1.75rem);
+  }
+
+  /* Auth */
+  .auth-card {
+    padding: var(--spacing-4);
+  }
+
+  /* Profile */
+  .profile-card-header {
+    padding: var(--spacing-4);
+  }
+
+  /* Calendar - even more compact */
+  .calendar-weekdays,
+  .calendar-days {
+    gap: 1px;
+  }
+
+  .calendar-day {
+    min-height: 50px;
+  }
+
+  .calendar-nav-button {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+
+  /* Organizations */
+  .organization-content {
+    padding: var(--spacing-4);
+  }
+
+  .organization-name {
+    font-size: 1.125rem;
+  }
+
+  /* Buttons full width */
+  .auth-link,
+  .view-all-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Notification badge smaller */
+  .notification-badge {
+    font-size: 0.65rem;
+    padding: 2px var(--spacing-1);
+  }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE (max-height: 500px)
+   ============================================ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-nav-drawer {
+    padding-top: 60px;
+  }
+
+  .navigation-container {
+    height: 50px;
+  }
+
+  .auth-page {
+    align-items: center;
+    padding-top: var(--spacing-4);
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .navigation-root,
+  .mobile-menu-toggle,
+  .mobile-nav-drawer,
+  .mobile-menu-overlay,
+  .user-menu,
+  .btn,
+  .back-link {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    color: black;
+    background: white;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .event-card,
+  .organization-card,
+  .notification-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCE
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .mobile-nav-drawer {
+    transition: none;
+  }
+
+  .hamburger span {
+    transition: none;
+  }
 }

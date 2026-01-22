@@ -24,6 +24,7 @@ export function JoinEventButton({
   const { user } = useAuth()
   const [isJoined, setIsJoined] = useState(initialIsJoined)
   const [isLoading, setIsLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [participantsCount, setParticipantsCount] = useState(initialParticipantsCount)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -34,6 +35,7 @@ export function JoinEventButton({
     const loadParticipation = async () => {
       if (!user) {
         setIsJoined(false)
+        setIsInitialLoading(false)
         return
       }
 
@@ -42,6 +44,7 @@ export function JoinEventButton({
 
       const hasParticipation = Array.isArray(data?.docs) && data.docs.length > 0
       setIsJoined(hasParticipation)
+      setIsInitialLoading(false)
     }
 
     // Only load participation once on mount, not on every render
@@ -118,6 +121,15 @@ export function JoinEventButton({
         aria-label="Login to join event"
       >
         Zaloguj się, aby dołączyć
+      </button>
+    )
+  }
+
+  if (isInitialLoading) {
+    return (
+      <button disabled className="btn btn-secondary btn-full" aria-label="Loading">
+        <span className="spinner"></span>
+        Ładowanie...
       </button>
     )
   }

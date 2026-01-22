@@ -36,7 +36,7 @@ export default async function HomePage() {
       </section>
 
       <div className="container">
-        <section style={{ paddingTop: 'var(--spacing-12)', paddingBottom: 'var(--spacing-12)' }}>
+        <section style={{ marginBlock: 'var(--spacing-12)' }}>
           <h2 style={{ textAlign: 'center' }}>Wszystko czego potrzebujesz</h2>
           <p className="section-subtitle">
             Kompleksowe rozwiązanie do zarządzania życiem kampusowym

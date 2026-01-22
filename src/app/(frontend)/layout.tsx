@@ -1,7 +1,15 @@
 import React from 'react'
+import type { Viewport } from 'next'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { Navigation } from '@/components/Navigation'
 import './styles.css'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+}
 
 export const metadata = {
   description: 'Smart Campus - platforma wydarzeń kampusowych',
