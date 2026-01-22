@@ -3506,6 +3506,123 @@ input.error {
 }
 
 /* ============================================
+   PAGINATION STYLES
+   ============================================ */
+.events-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-4) 0;
+}
+
+.pagination-button {
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: var(--color-primary-600);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+}
+
+.pagination-pages {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.pagination-page {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-page:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.pagination-page.active {
+  background: var(--color-primary-600);
+  color: white;
+  border-color: var(--color-primary-600);
+  box-shadow: var(--shadow-sm);
+}
+
+.pagination-ellipsis {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  padding: 0 var(--spacing-2);
+}
+
+/* Mobile pagination */
+@media (max-width: 768px) {
+  .events-pagination {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .pagination-button {
+    min-width: auto;
+    flex: 1;
+    font-size: var(--font-size-sm);
+  }
+
+  .pagination-pages {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-page {
+    width: 36px;
+    height: 36px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-button {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: 0.8rem;
+  }
+
+  .pagination-page {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ============================================
    REDUCED MOTION PREFERENCE
    ============================================ */
 

@@ -9,6 +9,7 @@ import type { Event } from '@/payload-types'
 
 const CACHE_KEY_PREFIX = 'events_cache_'
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const EVENTS_PER_PAGE = 20
 
 interface CachedEvents {
   data: Event[]
@@ -25,6 +26,18 @@ export function EventsView({ initialEvents }: { initialEvents: Event[] }) {
   const [error, setError] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE)
+  const startIndex = (currentPage - 1) * EVENTS_PER_PAGE
+  const endIndex = startIndex + EVENTS_PER_PAGE
+  const paginatedEvents = filteredEvents.slice(startIndex, endIndex)
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedTags])
 
   // Extract all unique tags from events
   useEffect(() => {
@@ -54,6 +67,21 @@ export function EventsView({ initialEvents }: { initialEvents: Event[] }) {
       setFilteredEvents(filtered)
     }
   }, [selectedTags, events])
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
@@ -208,31 +236,93 @@ export function EventsView({ initialEvents }: { initialEvents: Event[] }) {
               </button>
             ))}
           </div>
-          {selectedTags.length > 0 && (
-            <p className="tags-filter-info">
-              Wyświetlane wydarzenia: {filteredEvents.length} z {events.length}
-            </p>
-          )}
+        </div>
+      )}
+
+      {error && viewMode === 'list' && (
+        <div className="error-message">
+          <p>{error}</p>
         </div>
       )}
 
       {viewMode === 'list' ? (
         <>
-          {filteredEvents.length > 0 ? (
+          {isLoading ? (
             <div className="events-grid">
-              {filteredEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  description={event.description}
-                  eventDate={event.eventDate}
-                  location={event.location}
-                  participantsCount={event.participantsCount}
-                  tags={event.tags}
-                />
+              {[...Array(6)].map((_, i) => (
+                <EventCardSkeleton key={i} />
               ))}
             </div>
+          ) : paginatedEvents.length > 0 ? (
+            <>
+              <div className="events-grid">
+                {paginatedEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    id={event.id}
+                    title={event.title}
+                    description={event.description}
+                    eventDate={event.eventDate}
+                    location={event.location}
+                    participantsCount={event.participantsCount}
+                    tags={event.tags}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="events-pagination">
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className="pagination-button"
+                  >
+                    ← Poprzednia
+                  </button>
+
+                  <div className="pagination-pages">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+
+                      if (!showPage) {
+                        // Show ellipsis
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="pagination-ellipsis">
+                              ...
+                            </span>
+                          )
+                        }
+                        return null
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`pagination-page ${page === currentPage ? 'active' : ''}`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="pagination-button"
+                  >
+                    Następna →
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="empty-state">
               <div className="empty-icon">📅</div>
