@@ -4,7 +4,7 @@ import type { Event } from '@/payload-types'
 
 type EventCardProps = Pick<
   Event,
-  'id' | 'title' | 'description' | 'eventDate' | 'location' | 'participantsCount'
+  'id' | 'title' | 'description' | 'eventDate' | 'location' | 'participantsCount' | 'tags'
 > & {
   className?: string
 }
@@ -16,6 +16,7 @@ export function EventCard({
   eventDate,
   location,
   participantsCount,
+  tags,
   className,
 }: EventCardProps) {
   return (
@@ -23,6 +24,17 @@ export function EventCard({
       <div className="event-content">
         <h3 className="card-title">{title}</h3>
         <p className="card-description">{description}</p>
+        {tags && Array.isArray(tags) && tags.length > 0 && (
+          <div className="card-tags">
+            {tags.map((tagItem: any, index) =>
+              tagItem?.tag ? (
+                <span key={index} className="card-tag">
+                  {tagItem.tag}
+                </span>
+              ) : null,
+            )}
+          </div>
+        )}
         {participantsCount !== undefined && participantsCount !== null && (
           <div className="card-participants">
             👥 {participantsCount} {participantsCount === 1 ? 'uczestnik' : 'uczestników'}
