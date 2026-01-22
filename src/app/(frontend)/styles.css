@@ -1671,7 +1671,7 @@ input.error {
 
 /* Organizations Page */
 .organizations-page {
-  padding: var(--spacing-8) 0;
+  padding: var(--spacing-4) 0;
   min-height: 60vh;
 }
 
@@ -1681,14 +1681,15 @@ input.error {
 }
 
 .organizations-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
+  max-width: 800px;
+  margin: 0 auto var(--spacing-5);
   color: var(--color-gray-900);
-  margin-bottom: var(--spacing-3);
 }
 
 .organizations-subtitle {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  max-width: 600px;
+  margin: 0 auto var(--spacing-8);
   color: var(--color-gray-600);
 }
 
