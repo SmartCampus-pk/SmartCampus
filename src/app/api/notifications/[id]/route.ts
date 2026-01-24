@@ -89,3 +89,58 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     )
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params
+    const payloadConfig = await config
+    const payload = await getPayload({ config: payloadConfig })
+
+    const { user } = await payload.auth({ headers: request.headers })
+
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    // Verify notification exists and belongs to the user
+    let notification
+    try {
+      notification = await payload.findByID({
+        collection: 'notifications',
+        id,
+      })
+    } catch (error) {
+      return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+    }
+
+    if (!notification) {
+      return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
+    }
+
+    const notificationUserId =
+      typeof notification.user === 'object' && notification.user !== null
+        ? notification.user.id
+        : notification.user
+
+    if (notificationUserId !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    await payload.delete({
+      collection: 'notifications',
+      id,
+    })
+
+    logger.info('Notification deleted', { userId: user.id, notificationId: id })
+    return NextResponse.json({ message: 'Notification deleted' })
+  } catch (error: any) {
+    logger.error('Notification delete error', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to delete notification' },
+      { status: 400 },
+    )
+  }
+}

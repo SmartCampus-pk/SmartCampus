@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
 
@@ -40,6 +40,59 @@ export function OrganizationPageClient({
   const [isSaving, setIsSaving] = useState(false)
   const [events] = useState<Event[]>(initialEvents)
   const [org, setOrg] = useState<Organization>(organization)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null)
+  const [isLoadingFollow, setIsLoadingFollow] = useState(true)
+
+  // Check if user is following this organization
+  useEffect(() => {
+    if (user) {
+      checkFollowStatus()
+    } else {
+      setIsLoadingFollow(false)
+    }
+  }, [user, org.id])
+
+  const checkFollowStatus = async () => {
+    try {
+      setIsLoadingFollow(true)
+      const { data } = await api.subscriptions.check('organization', org.id)
+      if (data?.subscribed) {
+        setIsFollowing(true)
+        setSubscriptionId(data.subscription?.id || null)
+      } else {
+        setIsFollowing(false)
+        setSubscriptionId(null)
+      }
+    } catch (err) {
+      console.error('Failed to check follow status:', err)
+    } finally {
+      setIsLoadingFollow(false)
+    }
+  }
+
+  const handleFollow = async () => {
+    if (!user) return
+
+    try {
+      setIsLoadingFollow(true)
+      if (isFollowing && subscriptionId) {
+        await api.subscriptions.unsubscribe(subscriptionId)
+        setIsFollowing(false)
+        setSubscriptionId(null)
+      } else {
+        const { data } = await api.subscriptions.subscribe('organization', org.id)
+        if (data?.subscription) {
+          setIsFollowing(true)
+          setSubscriptionId(data.subscription.id)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle follow:', err)
+    } finally {
+      setIsLoadingFollow(false)
+    }
+  }
 
   const handleSave = async (formData: {
     description: string
@@ -91,11 +144,38 @@ export function OrganizationPageClient({
           <div>
             <div className="organization-single-title">
               <h1>{org.name}</h1>
-              {canEdit && (
-                <button onClick={() => setIsEditModalOpen(true)} className="btn btn-primary">
-                  Edytuj organizację
-                </button>
-              )}
+              <div className="organization-single-actions">
+                {user && (
+                  <button
+                    onClick={handleFollow}
+                    disabled={isLoadingFollow}
+                    className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'} follow-button`}
+                  >
+                    {isLoadingFollow ? (
+                      <span className="button-spinner" />
+                    ) : isFollowing ? (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z" />
+                        </svg>
+                        Obserwujesz
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M8 16a2 2 0 002-2H6a2 2 0 002 2zM8 1.918l-.797.161A4.002 4.002 0 004 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 00-3.203-3.92L8 1.917z" />
+                        </svg>
+                        Obserwuj
+                      </>
+                    )}
+                  </button>
+                )}
+                {canEdit && (
+                  <button onClick={() => setIsEditModalOpen(true)} className="btn btn-primary">
+                    Edytuj organizację
+                  </button>
+                )}
+              </div>
             </div>
             {org.type && (
               <span className="organization-single-type">{typeLabels[org.type] || org.type}</span>

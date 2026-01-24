@@ -77,10 +77,12 @@ export const api = {
   },
 
   notifications: {
-    list: (page?: number, limit?: number) => {
+    list: (page?: number, limit?: number, filters?: { type?: string; unreadOnly?: boolean }) => {
       const params = new URLSearchParams()
       if (page) params.set('page', page.toString())
       if (limit) params.set('limit', limit.toString())
+      if (filters?.type) params.set('type', filters.type)
+      if (filters?.unreadOnly) params.set('unreadOnly', 'true')
       const query = params.toString()
       return apiRequest(`/api/notifications/me${query ? `?${query}` : ''}`)
     },
@@ -88,6 +90,36 @@ export const api = {
       apiRequest(`/api/notifications/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ isRead: true }),
+      }),
+    markAllAsRead: () =>
+      apiRequest('/api/notifications/mark-all-read', {
+        method: 'POST',
+      }),
+    delete: (id: string) =>
+      apiRequest(`/api/notifications/${id}`, {
+        method: 'DELETE',
+      }),
+    unreadCount: () => apiRequest('/api/notifications/unread-count'),
+  },
+
+  subscriptions: {
+    check: (type: 'event' | 'organization', id: string) => {
+      const params = new URLSearchParams()
+      params.set('type', type)
+      params.set(type === 'event' ? 'event' : 'organization', id)
+      return apiRequest(`/api/subscriptions/check?${params.toString()}`)
+    },
+    subscribe: (type: 'event' | 'organization', id: string) =>
+      apiRequest('/api/subscriptions', {
+        method: 'POST',
+        body: JSON.stringify({
+          type,
+          ...(type === 'event' ? { event: id } : { organization: id }),
+        }),
+      }),
+    unsubscribe: (subscriptionId: string) =>
+      apiRequest(`/api/subscriptions/${subscriptionId}`, {
+        method: 'DELETE',
       }),
   },
 

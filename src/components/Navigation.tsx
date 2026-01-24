@@ -3,14 +3,39 @@
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { api } from '@/lib/api'
 
 export function Navigation() {
   const { user, logout, isLoading } = useAuth()
   const router = useRouter()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount()
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000)
+      return () => clearInterval(interval)
+    } else {
+      setUnreadCount(0)
+    }
+  }, [user])
+
+  const fetchUnreadCount = async () => {
+    try {
+      const { data } = await api.notifications.unreadCount()
+      if (data?.count !== undefined) {
+        setUnreadCount(data.count)
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err)
+    }
+  }
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -120,6 +145,11 @@ export function Navigation() {
                         <path d="M8 16a2 2 0 002-2H6a2 2 0 002 2zM8 1.918l-.797.161A4.002 4.002 0 004 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 00-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 111.99 0A5.002 5.002 0 0113 6c0 .88.32 4.2 1.22 6z" />
                       </svg>
                       Powiadomienia
+                      {unreadCount > 0 && (
+                        <span className="nav-notification-badge">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
                     </Link>
                     <Link
                       href="/profile"

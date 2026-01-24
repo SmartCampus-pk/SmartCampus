@@ -16,18 +16,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Get pagination parameters from query string
+    // Get pagination and filter parameters from query string
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const type = searchParams.get('type')
+    const unreadOnly = searchParams.get('unreadOnly') === 'true'
+
+    // Build where clause with filters
+    const whereConditions: any[] = [{ user: { equals: user.id } }]
+
+    if (type && (type === 'event_update' || type === 'announcement')) {
+      whereConditions.push({ type: { equals: type } })
+    }
+
+    if (unreadOnly) {
+      whereConditions.push({ isRead: { equals: false } })
+    }
 
     // Get notifications for the user with pagination
     const notifications = await payload.find({
       collection: 'notifications',
       where: {
-        user: {
-          equals: user.id,
-        },
+        and: whereConditions,
       },
       limit,
       page,

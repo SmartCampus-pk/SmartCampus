@@ -104,6 +104,35 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
+    // Auto-subscribe to event notifications
+    try {
+      const existingSubscription = await payload.find({
+        collection: 'subscriptions',
+        where: {
+          and: [
+            { user: { equals: user.id } },
+            { type: { equals: 'event' } },
+            { event: { equals: eventId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingSubscription.docs.length === 0) {
+        await payload.create({
+          collection: 'subscriptions',
+          data: {
+            user: user.id,
+            type: 'event',
+            event: eventId,
+          },
+        })
+      }
+    } catch (subError) {
+      // Log but don't fail - subscription is secondary
+      console.error('Failed to create event subscription:', subError)
+    }
+
     // Get current participants count
     const participantsCount = await payload.count({
       collection: 'event-participations',

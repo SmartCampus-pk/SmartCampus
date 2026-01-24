@@ -63,6 +63,31 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     })
 
+    // Remove event subscription
+    try {
+      const existingSubscription = await payload.find({
+        collection: 'subscriptions',
+        where: {
+          and: [
+            { user: { equals: user.id } },
+            { type: { equals: 'event' } },
+            { event: { equals: eventId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingSubscription.docs.length > 0) {
+        await payload.delete({
+          collection: 'subscriptions',
+          id: existingSubscription.docs[0].id,
+        })
+      }
+    } catch (subError) {
+      // Log but don't fail - unsubscription is secondary
+      console.error('Failed to remove event subscription:', subError)
+    }
+
     // Get current participants count (after leaving)
     const participantsCount = await payload.count({
       collection: 'event-participations',
