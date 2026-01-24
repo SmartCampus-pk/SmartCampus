@@ -156,29 +156,74 @@ Odpowiedź:
 
 ### Dashboard Statystyk
 
-> ⏳ Funkcja w przygotowaniu - podstawowe statystyki są widoczne w kolumnie domyślnych list
+#### Krok 1: Otwórz widok statystyk
+1. Zaloguj się do panelu admin
+2. Przejdź do **Events** → kliknij na konkretne wydarzenie
+3. W szczegółach eventu zobaczysz sekcję **"Statistics"** lub **"Statystyki"**
 
-#### Dostępne statystyki (w panelu admin):
+#### Krok 2: Dostępne statystyki
 
-1. **Lista Eventów** (`/admin/events`)
-   - W kolumnie domyślnej widzisz: `participantsCount`
-   - Pokazuje bieżącą liczbę uczestników (status="going")
+Dla każdego eventu widzisz:
+- **Łącznie** (Total) - wszystkie rejestracje
+- **Idzie** (Going) - potwierdzeni uczestnicy
+- **Zainteresowani** (Interested) - zainteresowani ale niepotwierdeni
+- **Uczestniczyło** (Attended) - byli na evencie
 
-2. **Szczegóły Eventu**
-   - Otwórz konkretne событие
-   - W sekcji **Participants** widzisz:
-     - Liczbę uczestników (Going, Interested, Cancelled)
-     - Listę ze wszystkimi danymi
+#### Krok 3: Dashboard Organizatora
+1. Kliknij na swoją organizację w menu admin
+2. Widok zawiera:
+   - **Moje Eventy** - lista twoich najbliższych događeń
+   - **Statystyki** - łączne liczby uczestników
+   - **Rejestracje Last 7 Days** - nowe zapisy w ostatnim tygodniu
+   - **Trend** - zmiana liczby uczestników w czasie
 
-3. **Ręczny Export**
-   - Otwórz listę uczestników
-   - Skopiuj dane (Ctrl+C)
-   - Wklej do Excel/Google Sheets
+#### Krok 4: Eksport danych
+1. Otwórz listę uczestników konkretnego eventu
+2. Zaznacz wszystkich (Ctrl+A)
+3. Skopiuj (Ctrl+C)
+4. Wklej do Excel/Google Sheets
 
-#### Przyszłe rozszerzenia:
-- Grafiki/wykresy uczestnictwa
-- Trend zapisów w czasie
-- Export do CSV/PDF
+#### Dostępne metryki:
+
+| Metryka | Opis | Gdzie? |
+|---------|------|--------|
+| Participants Count | Liczba potwierdzonych uczestników | Listing eventów |
+| Going | Status "idzie" | Szczegóły eventu |
+| Interested | Status "zainteresowany" | Szczegóły eventu |
+| Total | Wszystkie rejestracje | Szczegóły eventu |
+| Attendance Rate | % uczestników którzy przyszli | Dashboard organizatora |
+
+#### Wskazówki:
+- Odśwież stronę aby zobaczyć aktualne liczby
+- Odczekaj 1-2 sekundy po zapisie się uczestnika
+- Statystyki dotyczą samo potwierdzonych (Going)
+
+---
+
+### Powiadomienia
+
+#### Krok 1: Dostęp do powiadomień
+1. Zaloguj się na konto zwykłego użytkownika (student)
+2. Kliknij ikonę dzwonka (🔔) w górnym pasku
+3. Zobaczysz listę twoich powiadomień
+
+#### Krok 2: Rodzaje powiadomień
+- **Event Update** - zmiana w evencie, na który jesteś zapisany
+- **Announcement** - ważne ogłoszenia od organizacji
+
+#### Krok 3: Oznacz jako przeczytane
+1. Kliknij na powiadomienie
+2. Pojawi się opcja **"Oznacz jako przeczytane"**
+3. Powiadomienie zmieni kolor (z niebieskiego na szary)
+
+#### Krok 4: Usuń powiadomienie
+1. Kliknij ikona kosza przy powiadomieniu
+2. Powiadomienie zostanie usunięte
+
+#### Zarządzanie (dla organizatorów):
+- Wysyłaj powiadomienia poprzez panel admin
+- Jeśli zmienisz event, uczestnicy dostaną automatyczne powiadomienie
+- Możesz napisać własne ogłoszenie w sekcji "Notifications"
 
 ---
 
@@ -259,8 +304,6 @@ Rezultat: Alice może tworzyć i edytować eventy dla CS Club
 - `staff` może tworzyć nowe organizacje
 - `student` ma podstawowy dostęp
 
----
-
 ### Tworzenie Organizacji
 
 #### Krok 1: Otwórz sekcję Organizations
@@ -314,6 +357,64 @@ Status:      "active"
 - **Nie możesz usunąć** organizacji, którą mają przypisane eventy
 - Zmień status na `inactive`, aby ukryć organizację
 - Członkowie organizacji muszą mieć przypisaną rolę `org-admin` lub być wskazani w Teams
+
+### Zarządzanie Powiadomieniami (Admin)
+
+#### Krok 1: Otwórz sekcję Notifications
+1. Zaloguj się do panelu admin
+2. W lewym menu kliknij **"Notifications"** (lub **"Powiadomienia"**)
+3. Zobaczysz listę wszystkich powiadomień w systemie
+
+#### Krok 2: Utwórz nowe powiadomienie
+1. Kliknij **"Create"** lub **"Dodaj Powiadomienie"**
+2. Wypełnij pola:
+   - **User** - do kogo ma pójść (wybierz z listy)
+   - **Title** - temat powiadomienia
+   - **Message** - treść (może być długa)
+   - **Type** - `event_update` lub `announcement`
+   - **Related Event** - jeśli ma być powiązane z eventem
+
+#### Krok 3: Zapisz
+- Kliknij **"Save"**
+- Powiadomienie zostanie wysłane do użytkownika
+- Pojawi się w jego liście powiadomień
+
+#### Krok 4: Edytuj lub usuń
+- Otwórz powiadomienie
+- Zmień treść i kliknij **"Save"** lub **"Delete"**
+
+#### ⚠️ Ważne:
+- Powiadomienia są tworzone automatycznie gdy zmienisz event
+- Możesz tworzyć też ręczne ogłoszenia
+- Każdy użytkownik widzi tylko swoje powiadomienia
+
+### Widok Statystyk (Admin)
+
+#### Krok 1: Dostęp do statystyk
+1. Zaloguj się jako admin
+2. Przejdź do **Events** → wybierz konkretny event
+3. W szczegółach eventu zobaczysz sekcję **"Event Stats"**
+
+#### Krok 2: Metryki dostępne
+
+```
+┌─────────────────────────────────┐
+│    EVENT STATISTICS             │
+├─────────────────────────────────┤
+│  Łącznie: 42      │  Idzie: 38  │
+│  Zainteresowani: 3│  Uczestni: 1│
+└─────────────────────────────────┘
+```
+
+#### Krok 3: Dashboard Organizatora
+- Jako org-admin, przejdź do sekcji **"Dashboard"** 
+- Widzisz zagregowane statystyki dla wszystkich swoich eventów
+- Możesz analizować trendy i porównywać eventy
+
+#### Wskazówki:
+- Odśwież stronę aby zobaczyć aktualne liczby
+- Export: skopiuj tabelę uczestników i wklej do Excel
+- Archiwizuj stare eventy aby zmniejszyć szum w dashboardzie
 
 ---
 

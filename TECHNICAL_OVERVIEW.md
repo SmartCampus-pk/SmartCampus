@@ -318,7 +318,20 @@ Each EventCard displays:
 
 ## Main Modules
 
-### 1. Events Module
+### 1. Subscriptions Module (Optional)
+**Location**: `src/collections/Subscriptions.ts`
+
+**Purpose**: User subscriptions to event updates (email notifications)
+
+**Key Features**:
+- Subscribe to event updates
+- Subscribe to organization news
+- Manage notification preferences
+- Email dispatch ready
+
+---
+
+### 2. Events Module
 **Location**: `src/collections/Events.ts`, `src/app/api/events/`
 
 **Purpose**: Manage campus events (create, read, update, soft-delete)
@@ -400,6 +413,59 @@ Each EventCard displays:
 - Focal point selection
 - Predefined sizes for optimization
 - Used by Events and Organizations
+
+### 6. Notifications Module
+**Location**: `src/collections/Notifications.ts`, `src/app/api/notifications/`
+
+**Purpose**: User notifications and announcements about events
+
+**Key Features**:
+- Notification types: event_update, announcement
+- Track read/unread status
+- Link notifications to specific events
+- Per-user notification list with pagination
+- Auto-created when event is updated
+
+**Access Control**:
+- Read: Users can only see their own notifications
+- Create: Admins/organizers when creating announcements
+- Update: Users can mark own notifications as read
+- Delete: Users can delete their own notifications
+
+**API Endpoints**:
+- `GET /api/notifications/me` - Get current user's notifications (paginated)
+- `PATCH /api/notifications/:id` - Mark notification as read
+
+### 7. Stats Module
+**Location**: `src/lib/stats.ts`, `src/app/api/events/:id/stats/route.ts`, `src/app/api/organizer/dashboard/route.ts`
+
+**Purpose**: Analytics and statistics for events and organizations
+
+**Key Features**:
+- Event statistics: total participants, going, interested, attended
+- Organization statistics: total events, registrations, trending
+- Participation tracking over time
+- Dashboard with aggregated data
+
+**Types**:
+```typescript
+type EventStats = {
+  total: number        // Total participants
+  going: number        // Confirmed going
+  interested: number   // Marked interested
+  attended: number     // Actually attended
+}
+
+type OrganizationStats = {
+  eventsCount: number
+  registrationsTotal: number
+  topTags: Array<{ tag: string; registrations: number }>
+}
+```
+
+**API Endpoints**:
+- `GET /api/events/:id/stats` - Get event statistics
+- `GET /api/organizer/dashboard` - Get organizer dashboard data
 
 ## API Documentation
 
