@@ -8,10 +8,28 @@ export const EventParticipations: CollectionConfig = {
     group: 'Content',
   },
   access: {
-    // Everyone can read (for displaying participant counts)
-    read: () => true,
-    // Only logged in users can create participations
-    create: ({ req: { user } }) => !!user,
+    // Read access: owners, org-admins/staff/super-admins can view
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'super-admin' || user.role === 'staff') return true
+      if (user.role === 'org-admin') return true // org-admins have broader access (filtered in admin UI)
+
+      // Default: users can only read their own participations
+      return {
+        user: {
+          equals: user.id,
+        },
+      }
+    },
+
+    // Only authenticated users can create participations. Users may only create participations for themselves
+    create: ({ req: { user }, data }) => {
+      if (!user) return false
+      if (user.role === 'super-admin') return true
+      // If `user` was provided in payload data, ensure it matches the authenticated user
+      if (data?.user && data.user !== user.id) return false
+      return true
+    },
     // Users can update their own participations
     update: ({ req: { user } }) => {
       if (!user) return false

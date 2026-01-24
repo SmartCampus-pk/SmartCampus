@@ -29,7 +29,7 @@ export const Events: CollectionConfig = {
       if (!user) return false
       return user.role === 'org-admin' || user.role === 'super-admin'
     },
-    // Organizers and org-admins of the event's organization can update
+    // Only org-admins of the event's organization (or super-admin) can update
     update: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'super-admin') return true
@@ -43,8 +43,8 @@ export const Events: CollectionConfig = {
         }
       }
 
-      // For now, allow all logged in users to update
-      return true
+      // Other roles cannot update events
+      return false
     },
     // Only super-admins can delete events
     delete: ({ req: { user } }) => {
