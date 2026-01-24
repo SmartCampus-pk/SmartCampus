@@ -124,18 +124,10 @@ export const Subscriptions: CollectionConfig = {
           // Allow overrideAccess/system operations
           if (!user) return data
           console.debug('[Subscriptions.beforeChange] create by user=', user.id)
-          if (data.user && data.user !== user.id) throw new Error('Forbidden - cannot create subscription for another user')
+          if (data.user && data.user !== user.id)
+            throw new Error('Forbidden - cannot create subscription for another user')
           // Normalize if user not provided
           if (!data.user) data.user = user.id
-        }
-
-        // For updates/deletes, ensure ownership unless super-admin
-        if (operation === 'update' || operation === 'delete') {
-          const user = req.user
-          if (!user) throw new Error('Forbidden')
-          if (user.role === 'super-admin') return data
-          // payload will enforce via access, but double-check here
-          // No further logic needed; rely on access rules
         }
 
         return data

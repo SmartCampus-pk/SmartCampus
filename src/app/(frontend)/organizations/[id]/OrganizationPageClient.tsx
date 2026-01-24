@@ -4,6 +4,7 @@ import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
+import { ErrorAlert } from '@/components/AlertDialog'
 
 interface Organization {
   id: string
@@ -43,6 +44,8 @@ export function OrganizationPageClient({
   const [isFollowing, setIsFollowing] = useState(false)
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null)
   const [isLoadingFollow, setIsLoadingFollow] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showError, setShowError] = useState(false)
 
   // Check if user is following this organization
   useEffect(() => {
@@ -104,13 +107,15 @@ export function OrganizationPageClient({
       setIsSaving(true)
       const { error: apiError } = await api.organizations.update(org.id, formData)
       if (apiError) {
-        alert('Nie udało się zapisać zmian: ' + apiError)
+        setErrorMessage('Nie udało się zapisać zmian: ' + apiError)
+        setShowError(true)
         return
       }
       setOrg({ ...org, ...formData })
       setIsEditModalOpen(false)
     } catch (err) {
-      alert('Wystąpił błąd podczas zapisywania')
+      setErrorMessage('Wystąpił błąd podczas zapisywania')
+      setShowError(true)
     } finally {
       setIsSaving(false)
     }
@@ -271,6 +276,8 @@ export function OrganizationPageClient({
           isSaving={isSaving}
         />
       )}
+
+      <ErrorAlert open={showError} onOpenChange={setShowError} message={errorMessage} />
     </div>
   )
 }

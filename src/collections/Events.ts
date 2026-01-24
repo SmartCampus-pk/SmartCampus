@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { slugify, generateUniqueSlug } from '../lib/slugify'
 import { logger } from '../lib/logger'
@@ -14,13 +14,10 @@ export const Events: CollectionConfig = {
   },
   access: {
     // Everyone can read non-deleted events
-    read: ({ req: { user } }) => {
+    read: ({ req: { user } }): Where | boolean => {
       if (user?.role === 'super-admin') {
         return {
-          OR: [
-            { deletedAt: { exists: false } },
-            { deletedAt: { exists: true } },
-          ],
+          or: [{ deletedAt: { exists: false } }, { deletedAt: { exists: true } }],
         }
       }
 
@@ -42,7 +39,10 @@ export const Events: CollectionConfig = {
 
       // Org admins can update events from their organization
       if (user.role === 'org-admin' && user.organization) {
-        const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
+        const orgId =
+          typeof user.organization === 'object' && user.organization !== null
+            ? user.organization.id
+            : user.organization
         return {
           organization: {
             equals: orgId,
@@ -359,35 +359,38 @@ export const Events: CollectionConfig = {
         return data
       },
     ],
-      // Enforce server-side create permissions and set createdBy/updatedBy
-      beforeChange: [
-        ({ req, operation, data }) => {
-          if (operation === 'create') {
-            const user = req.user
-            // If there's no authenticated user, deny create from API
-              // Allow system/overrideAccess operations when no req.user is present
-              if (!user) return data
-            if (!(user.role === 'org-admin' || user.role === 'super-admin')) {
-              throw new Error('Forbidden - insufficient role to create events')
-            }
-            // Ensure org-admin can only create for their organization
-            if (user.role === 'org-admin') {
-              const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
-              if (data.organization && data.organization !== orgId) {
-                throw new Error('Forbidden - cannot create events for other organizations')
-              }
+    // Enforce server-side create permissions and set createdBy/updatedBy
+    beforeChange: [
+      ({ req, operation, data }) => {
+        if (operation === 'create') {
+          const user = req.user
+          // If there's no authenticated user, deny create from API
+          // Allow system/overrideAccess operations when no req.user is present
+          if (!user) return data
+          if (!(user.role === 'org-admin' || user.role === 'super-admin')) {
+            throw new Error('Forbidden - insufficient role to create events')
+          }
+          // Ensure org-admin can only create for their organization
+          if (user.role === 'org-admin') {
+            const orgId =
+              typeof user.organization === 'object' && user.organization !== null
+                ? user.organization.id
+                : user.organization
+            if (data.organization && data.organization !== orgId) {
+              throw new Error('Forbidden - cannot create events for other organizations')
             }
           }
+        }
 
-          if (req.user) {
-            if (operation === 'create') {
-              data.createdBy = req.user.id
-            }
-            data.updatedBy = req.user.id
+        if (req.user) {
+          if (operation === 'create') {
+            data.createdBy = req.user.id
           }
-          return data
-        },
-      ],
+          data.updatedBy = req.user.id
+        }
+        return data
+      },
+    ],
     afterChange: [
       async ({ doc, req, previousDoc, operation }) => {
         // Only generate notifications on update, not on create
@@ -569,7 +572,11 @@ export const Events: CollectionConfig = {
 
         // Verify the document was updated and log it for debugging
         try {
-          const updated = await req.payload.findByID({ collection: 'events', id, overrideAccess: true })
+          const updated = await req.payload.findByID({
+            collection: 'events',
+            id,
+            overrideAccess: true,
+          })
           console.log('[Events.beforeDelete] post-update document=', updated)
         } catch (err) {
           console.error('[Events.beforeDelete] error fetching post-update document', err)

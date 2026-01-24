@@ -17,18 +17,33 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Rate limiting per user and per IP for join actions
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown'
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
     const userIdentifier = `join:user:${user.id}`
     const ipIdentifier = `join:ip:${ip}`
 
     // Max 30 join attempts per minute per user, 60 per minute per IP
     if (!checkRateLimit(userIdentifier, 30, 60 * 1000)) {
       const remaining = getRemainingTime(userIdentifier)
-      return NextResponse.json({ error: `Rate limit exceeded for join (user). Try again in ${remaining} seconds.`, remainingTime: remaining }, { status: 429 })
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded for join (user). Try again in ${remaining} seconds.`,
+          remainingTime: remaining,
+        },
+        { status: 429 },
+      )
     }
     if (!checkRateLimit(ipIdentifier, 60, 60 * 1000)) {
       const remaining = getRemainingTime(ipIdentifier)
-      return NextResponse.json({ error: `Rate limit exceeded for join (IP). Try again in ${remaining} seconds.`, remainingTime: remaining }, { status: 429 })
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded for join (IP). Try again in ${remaining} seconds.`,
+          remainingTime: remaining,
+        },
+        { status: 429 },
+      )
     }
 
     // Verify event exists and is active
@@ -76,12 +91,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (existing.docs.length > 0) {
       // Already participating - update status to 'going'
+      // Use overrideAccess since we already verified the user owns this participation
       const updated = await payload.update({
         collection: 'event-participations',
         id: existing.docs[0].id,
         data: {
           status: 'going',
         },
+        overrideAccess: true,
       })
 
       // Get current participants count

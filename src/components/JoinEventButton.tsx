@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
+import { AlertDialog, ErrorAlert } from './AlertDialog'
 
 interface JoinEventButtonProps {
   eventId: string
@@ -28,6 +29,9 @@ export function JoinEventButton({
   const [participantsCount, setParticipantsCount] = useState(initialParticipantsCount)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showError, setShowError] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -71,7 +75,8 @@ export function JoinEventButton({
     const { data, error } = await api.events.join(eventId)
 
     if (error) {
-      alert(error)
+      setErrorMessage(error)
+      setShowError(true)
       setIsLoading(false)
       return
     }
@@ -89,14 +94,17 @@ export function JoinEventButton({
   }
 
   const handleLeave = async () => {
-    const confirmed = confirm('Czy na pewno chcesz opuścić to wydarzenie?')
-    if (!confirmed) return
+    setShowLeaveConfirm(true)
+  }
 
+  const confirmLeave = async () => {
+    setShowLeaveConfirm(false)
     setIsLoading(true)
     const { data, error } = await api.events.leave(eventId)
 
     if (error) {
-      alert(error)
+      setErrorMessage(error)
+      setShowError(true)
       setIsLoading(false)
       return
     }
@@ -179,6 +187,19 @@ export function JoinEventButton({
           <span>{toastMessage}</span>
         </div>
       )}
+
+      <AlertDialog
+        open={showLeaveConfirm}
+        onOpenChange={setShowLeaveConfirm}
+        title="Opuść wydarzenie"
+        description="Czy na pewno chcesz opuścić to wydarzenie? Możesz dołączyć ponownie w każdej chwili."
+        confirmText="Opuść"
+        cancelText="Anuluj"
+        onConfirm={confirmLeave}
+        variant="destructive"
+      />
+
+      <ErrorAlert open={showError} onOpenChange={setShowError} message={errorMessage} />
     </>
   )
 }
