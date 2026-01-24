@@ -30,19 +30,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Light rate limiting for notifications fetch to avoid scraping
-    const userIdentifier = `notifications:user:${user.id}`
-    if (!checkRateLimit(userIdentifier, 60, 60 * 1000)) {
-      const remaining = getRemainingTime(userIdentifier)
-      return NextResponse.json(
-        {
-          error: `Too many requests for notifications. Try again in ${remaining} seconds.`,
-          remainingTime: remaining,
-        },
-        { status: 429 },
-      )
-    }
-
     // Get pagination and filter parameters from query string
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
