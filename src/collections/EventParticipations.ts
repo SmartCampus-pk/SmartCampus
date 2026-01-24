@@ -102,7 +102,7 @@ export const EventParticipations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ req, operation, data }) => {
+      async ({ req, operation, data, id }) => {
         // Ensure unique (event, user) pair
         if (operation === 'create') {
           const existing = await req.payload.find({
@@ -132,6 +132,24 @@ export const EventParticipations: CollectionConfig = {
         // Auto-set user from req.user if not provided
         if (!data.user && req.user) {
           data.user = req.user.id
+        }
+
+        // Server-side enforcement for updates/deletes: only owner or super-admin
+        if (operation === 'update' || operation === 'delete') {
+          if (!req.user) {
+            throw new Error('Forbidden')
+          }
+          if (req.user.role === 'super-admin') return data
+
+          // Fetch existing participation to verify ownership
+          const existingId = id || data?.id
+          if (existingId) {
+            const existingDoc = await req.payload.findByID({ collection: 'event-participations', id: existingId, overrideAccess: true }).catch(() => null)
+            const ownerId = typeof existingDoc?.user === 'object' && existingDoc?.user !== null ? existingDoc.user.id : existingDoc?.user
+            if (ownerId && ownerId !== req.user.id) {
+              throw new Error('Forbidden - cannot modify another user\'s participation')
+            }
+          }
         }
 
         return data

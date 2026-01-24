@@ -36,9 +36,10 @@ export const Events: CollectionConfig = {
 
       // Org admins can update events from their organization
       if (user.role === 'org-admin' && user.organization) {
+        const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
         return {
           organization: {
-            equals: user.organization,
+            equals: orgId,
           },
         }
       }
@@ -338,17 +339,35 @@ export const Events: CollectionConfig = {
         return data
       },
     ],
-    beforeChange: [
-      ({ req, operation, data }) => {
-        if (req.user) {
+      // Enforce server-side create permissions and set createdBy/updatedBy
+      beforeChange: [
+        ({ req, operation, data }) => {
           if (operation === 'create') {
-            data.createdBy = req.user.id
+            const user = req.user
+            // If there's no authenticated user, deny create from API
+              // Allow system/overrideAccess operations when no req.user is present
+              if (!user) return data
+            if (!(user.role === 'org-admin' || user.role === 'super-admin')) {
+              throw new Error('Forbidden - insufficient role to create events')
+            }
+            // Ensure org-admin can only create for their organization
+            if (user.role === 'org-admin') {
+              const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
+              if (data.organization && data.organization !== orgId) {
+                throw new Error('Forbidden - cannot create events for other organizations')
+              }
+            }
           }
-          data.updatedBy = req.user.id
-        }
-        return data
-      },
-    ],
+
+          if (req.user) {
+            if (operation === 'create') {
+              data.createdBy = req.user.id
+            }
+            data.updatedBy = req.user.id
+          }
+          return data
+        },
+      ],
     afterChange: [
       async ({ doc, req, previousDoc, operation }) => {
         // Only generate notifications on update, not on create
