@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { checkRateLimit, getRemainingTime } from '@/lib/rateLimiter'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,6 +14,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limiting per user and per IP for leave actions
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown'
+    const userIdentifier = `leave:user:${user.id}`
+    const ipIdentifier = `leave:ip:${ip}`
+
+    // Max 30 leave attempts per minute per user, 60 per minute per IP
+    if (!checkRateLimit(userIdentifier, 30, 60 * 1000)) {
+      const remaining = getRemainingTime(userIdentifier)
+      return NextResponse.json({ error: `Rate limit exceeded for leave (user). Try again in ${remaining} seconds.`, remainingTime: remaining }, { status: 429 })
+    }
+    if (!checkRateLimit(ipIdentifier, 60, 60 * 1000)) {
+      const remaining = getRemainingTime(ipIdentifier)
+      return NextResponse.json({ error: `Rate limit exceeded for leave (IP). Try again in ${remaining} seconds.`, remainingTime: remaining }, { status: 429 })
     }
 
     // Verify event exists

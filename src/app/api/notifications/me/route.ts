@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { logger } from '@/lib/logger'
+import { checkRateLimit, getRemainingTime } from '@/lib/rateLimiter'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,32 @@ export async function GET(request: NextRequest) {
     if (!user) {
       logger.warn('Notifications fetch attempted without authentication')
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    // Light rate limiting for notifications fetch to avoid scraping
+    const userIdentifier = `notifications:user:${user.id}`
+    if (!checkRateLimit(userIdentifier, 60, 60 * 1000)) {
+      const remaining = getRemainingTime(userIdentifier)
+      return NextResponse.json(
+        {
+          error: `Too many requests for notifications. Try again in ${remaining} seconds.`,
+          remainingTime: remaining,
+        },
+        { status: 429 },
+      )
+    }
+
+    // Light rate limiting for notifications fetch to avoid scraping
+    const userIdentifier = `notifications:user:${user.id}`
+    if (!checkRateLimit(userIdentifier, 60, 60 * 1000)) {
+      const remaining = getRemainingTime(userIdentifier)
+      return NextResponse.json(
+        {
+          error: `Too many requests for notifications. Try again in ${remaining} seconds.`,
+          remainingTime: remaining,
+        },
+        { status: 429 },
+      )
     }
 
     // Get pagination and filter parameters from query string

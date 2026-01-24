@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { checkRateLimit, getRemainingTime } from '@/lib/rateLimiter'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +18,23 @@ export async function POST(request: NextRequest) {
 
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
+
+    // Rate limiting: by IP and by email to prevent abuse
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown'
+    const ipIdentifier = `register:ip:${ip}`
+    const emailIdentifier = `register:email:${email?.toLowerCase()}`
+
+    // Allow up to 10 registrations per IP per hour
+    if (!checkRateLimit(ipIdentifier, 10, 60 * 60 * 1000)) {
+      const remaining = getRemainingTime(ipIdentifier)
+      return NextResponse.json({ error: `Too many registrations from this IP. Try again later.`, remainingTime: remaining }, { status: 429 })
+    }
+
+    // Allow up to 3 registrations per email per day
+    if (!checkRateLimit(emailIdentifier, 3, 24 * 60 * 60 * 1000)) {
+      const remaining = getRemainingTime(emailIdentifier)
+      return NextResponse.json({ error: `Too many registration attempts for this email. Try again later.`, remainingTime: remaining }, { status: 429 })
+    }
 
     // Create user (password validation happens in beforeValidate hook)
     const user = await payload.create({

@@ -8,10 +8,28 @@ export const EventParticipations: CollectionConfig = {
     group: 'Content',
   },
   access: {
-    // Everyone can read (for displaying participant counts)
-    read: () => true,
-    // Only logged in users can create participations
-    create: ({ req: { user } }) => !!user,
+    // Read access: owners, org-admins/staff/super-admins can view
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'super-admin' || user.role === 'staff') return true
+      if (user.role === 'org-admin') return true // org-admins have broader access (filtered in admin UI)
+
+      // Default: users can only read their own participations
+      return {
+        user: {
+          equals: user.id,
+        },
+      }
+    },
+
+    // Only authenticated users can create participations. Users may only create participations for themselves
+    create: ({ req: { user }, data }) => {
+      if (!user) return false
+      if (user.role === 'super-admin') return true
+      // If `user` was provided in payload data, ensure it matches the authenticated user
+      if (data?.user && data.user !== user.id) return false
+      return true
+    },
     // Users can update their own participations
     update: ({ req: { user } }) => {
       if (!user) return false
@@ -84,7 +102,8 @@ export const EventParticipations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ req, operation, data }) => {
+      async ({ req, operation, data, id, originalDoc }) => {
+        console.debug('[EventParticipations.beforeChange] operation=', operation, 'id=', id, 'hasOriginal=', !!originalDoc, 'user=', req?.user?.id)
         // Ensure unique (event, user) pair
         if (operation === 'create') {
           const existing = await req.payload.find({
@@ -114,6 +133,35 @@ export const EventParticipations: CollectionConfig = {
         // Auto-set user from req.user if not provided
         if (!data.user && req.user) {
           data.user = req.user.id
+        }
+
+        // Server-side enforcement for updates/deletes: only owner or super-admin
+        if (operation === 'update' || operation === 'delete') {
+          if (!req.user) {
+            throw new Error('Forbidden')
+          }
+          if (req.user.role === 'super-admin') return data
+
+          // Prefer the provided originalDoc (Payload gives this for update operations)
+          let ownerId: string | undefined
+          if (originalDoc) {
+            ownerId = typeof originalDoc.user === 'object' && originalDoc.user !== null ? originalDoc.user.id : originalDoc.user
+            console.debug('[EventParticipations.beforeChange] ownerId from originalDoc=', ownerId)
+          }
+
+          // Fallback to fetching by id if originalDoc not present
+          if (!ownerId) {
+            const existingId = id || data?.id
+            if (existingId) {
+              const existingDoc = await req.payload.findByID({ collection: 'event-participations', id: existingId, overrideAccess: true }).catch(() => null)
+              ownerId = typeof existingDoc?.user === 'object' && existingDoc?.user !== null ? existingDoc.user.id : existingDoc?.user
+              console.debug('[EventParticipations.beforeChange] ownerId from findByID=', ownerId)
+            }
+          }
+
+          if (ownerId && ownerId !== req.user.id) {
+            throw new Error('Forbidden - cannot modify another user\'s participation')
+          }
         }
 
         return data

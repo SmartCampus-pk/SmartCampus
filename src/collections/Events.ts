@@ -15,10 +15,15 @@ export const Events: CollectionConfig = {
   access: {
     // Everyone can read non-deleted events
     read: ({ req: { user } }) => {
-      // Super admins can see deleted events
-      if (user?.role === 'super-admin') return true
+      if (user?.role === 'super-admin') {
+        return {
+          OR: [
+            { deletedAt: { exists: false } },
+            { deletedAt: { exists: true } },
+          ],
+        }
+      }
 
-      // Others only see non-deleted
       return {
         deletedAt: {
           exists: false,
@@ -30,22 +35,23 @@ export const Events: CollectionConfig = {
       if (!user) return false
       return user.role === 'org-admin' || user.role === 'super-admin'
     },
-    // Organizers and org-admins of the event's organization can update
+    // Only org-admins of the event's organization (or super-admin) can update
     update: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'super-admin') return true
 
       // Org admins can update events from their organization
       if (user.role === 'org-admin' && user.organization) {
+        const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
         return {
           organization: {
-            equals: user.organization,
+            equals: orgId,
           },
         }
       }
 
-      // For now, allow all logged in users to update
-      return true
+      // Other roles cannot update events
+      return false
     },
     // Only super-admins can delete events
     delete: ({ req: { user } }) => {
@@ -353,17 +359,35 @@ export const Events: CollectionConfig = {
         return data
       },
     ],
-    beforeChange: [
-      ({ req, operation, data }) => {
-        if (req.user) {
+      // Enforce server-side create permissions and set createdBy/updatedBy
+      beforeChange: [
+        ({ req, operation, data }) => {
           if (operation === 'create') {
-            data.createdBy = req.user.id
+            const user = req.user
+            // If there's no authenticated user, deny create from API
+              // Allow system/overrideAccess operations when no req.user is present
+              if (!user) return data
+            if (!(user.role === 'org-admin' || user.role === 'super-admin')) {
+              throw new Error('Forbidden - insufficient role to create events')
+            }
+            // Ensure org-admin can only create for their organization
+            if (user.role === 'org-admin') {
+              const orgId = typeof user.organization === 'object' && user.organization !== null ? user.organization.id : user.organization
+              if (data.organization && data.organization !== orgId) {
+                throw new Error('Forbidden - cannot create events for other organizations')
+              }
+            }
           }
-          data.updatedBy = req.user.id
-        }
-        return data
-      },
-    ],
+
+          if (req.user) {
+            if (operation === 'create') {
+              data.createdBy = req.user.id
+            }
+            data.updatedBy = req.user.id
+          }
+          return data
+        },
+      ],
     afterChange: [
       async ({ doc, req, previousDoc, operation }) => {
         // Only generate notifications on update, not on create
@@ -531,6 +555,7 @@ export const Events: CollectionConfig = {
 
         // Soft delete instead of hard delete
         // Need to bypass access control to update the deleted event
+        console.debug('[Events.beforeDelete] soft-deleting event id=', id, 'by user=', req.user?.id)
         await req.payload.update({
           collection: 'events',
           id,
@@ -538,8 +563,17 @@ export const Events: CollectionConfig = {
             deletedAt: new Date().toISOString(),
             deletedBy: req.user.id,
           },
-          overrideAccess: true,
+          user: req.user,
         })
+        console.debug('[Events.beforeDelete] soft-delete completed for id=', id)
+
+        // Verify the document was updated and log it for debugging
+        try {
+          const updated = await req.payload.findByID({ collection: 'events', id, overrideAccess: true })
+          console.log('[Events.beforeDelete] post-update document=', updated)
+        } catch (err) {
+          console.error('[Events.beforeDelete] error fetching post-update document', err)
+        }
 
         // Return false to prevent actual deletion
         return false
