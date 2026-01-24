@@ -14,10 +14,15 @@ export const Events: CollectionConfig = {
   access: {
     // Everyone can read non-deleted events
     read: ({ req: { user } }) => {
-      // Super admins can see deleted events
-      if (user?.role === 'super-admin') return true
+      if (user?.role === 'super-admin') {
+        return {
+          OR: [
+            { deletedAt: { exists: false } },
+            { deletedAt: { exists: true } },
+          ],
+        }
+      }
 
-      // Others only see non-deleted
       return {
         deletedAt: {
           exists: false,
@@ -535,6 +540,7 @@ export const Events: CollectionConfig = {
 
         // Soft delete instead of hard delete
         // Need to bypass access control to update the deleted event
+        console.debug('[Events.beforeDelete] soft-deleting event id=', id, 'by user=', req.user?.id)
         await req.payload.update({
           collection: 'events',
           id,
@@ -542,8 +548,17 @@ export const Events: CollectionConfig = {
             deletedAt: new Date().toISOString(),
             deletedBy: req.user.id,
           },
-          overrideAccess: true,
+          user: req.user,
         })
+        console.debug('[Events.beforeDelete] soft-delete completed for id=', id)
+
+        // Verify the document was updated and log it for debugging
+        try {
+          const updated = await req.payload.findByID({ collection: 'events', id, overrideAccess: true })
+          console.log('[Events.beforeDelete] post-update document=', updated)
+        } catch (err) {
+          console.error('[Events.beforeDelete] error fetching post-update document', err)
+        }
 
         // Return false to prevent actual deletion
         return false

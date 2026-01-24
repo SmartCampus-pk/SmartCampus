@@ -102,7 +102,8 @@ export const EventParticipations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ req, operation, data, id }) => {
+      async ({ req, operation, data, id, originalDoc }) => {
+        console.debug('[EventParticipations.beforeChange] operation=', operation, 'id=', id, 'hasOriginal=', !!originalDoc, 'user=', req?.user?.id)
         // Ensure unique (event, user) pair
         if (operation === 'create') {
           const existing = await req.payload.find({
@@ -141,14 +142,25 @@ export const EventParticipations: CollectionConfig = {
           }
           if (req.user.role === 'super-admin') return data
 
-          // Fetch existing participation to verify ownership
-          const existingId = id || data?.id
-          if (existingId) {
-            const existingDoc = await req.payload.findByID({ collection: 'event-participations', id: existingId, overrideAccess: true }).catch(() => null)
-            const ownerId = typeof existingDoc?.user === 'object' && existingDoc?.user !== null ? existingDoc.user.id : existingDoc?.user
-            if (ownerId && ownerId !== req.user.id) {
-              throw new Error('Forbidden - cannot modify another user\'s participation')
+          // Prefer the provided originalDoc (Payload gives this for update operations)
+          let ownerId: string | undefined
+          if (originalDoc) {
+            ownerId = typeof originalDoc.user === 'object' && originalDoc.user !== null ? originalDoc.user.id : originalDoc.user
+            console.debug('[EventParticipations.beforeChange] ownerId from originalDoc=', ownerId)
+          }
+
+          // Fallback to fetching by id if originalDoc not present
+          if (!ownerId) {
+            const existingId = id || data?.id
+            if (existingId) {
+              const existingDoc = await req.payload.findByID({ collection: 'event-participations', id: existingId, overrideAccess: true }).catch(() => null)
+              ownerId = typeof existingDoc?.user === 'object' && existingDoc?.user !== null ? existingDoc.user.id : existingDoc?.user
+              console.debug('[EventParticipations.beforeChange] ownerId from findByID=', ownerId)
             }
+          }
+
+          if (ownerId && ownerId !== req.user.id) {
+            throw new Error('Forbidden - cannot modify another user\'s participation')
           }
         }
 

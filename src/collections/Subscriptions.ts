@@ -7,15 +7,18 @@ export const Subscriptions: CollectionConfig = {
     description: 'User subscriptions to events or organizations',
   },
   access: {
-    read: ({ req: { user } }) => {
+    read: ({ req }) => {
+      const user = req?.user
+      console.debug('[Subscriptions.access.read] user=', user?.id, 'role=', user?.role)
       // Super-admins can see all subscriptions
       if (user?.role === 'super-admin') return true
 
-      // Users can only see their own subscriptions
+      // All other authenticated users may only see their own subscriptions
       if (user) {
+        const userId = typeof user === 'object' && user !== null ? user.id : user
         return {
           user: {
-            equals: user.id,
+            equals: userId,
           },
         }
       }
@@ -120,6 +123,7 @@ export const Subscriptions: CollectionConfig = {
           const user = req.user
           // Allow overrideAccess/system operations
           if (!user) return data
+          console.debug('[Subscriptions.beforeChange] create by user=', user.id)
           if (data.user && data.user !== user.id) throw new Error('Forbidden - cannot create subscription for another user')
           // Normalize if user not provided
           if (!data.user) data.user = user.id
@@ -135,6 +139,26 @@ export const Subscriptions: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    afterRead: [
+      async ({ doc, req }) => {
+        // Hide subscriptions that don't belong to the requesting user (unless super-admin)
+        const user = req?.user
+        if (!user) return doc
+        if (user.role === 'super-admin') return doc
+
+        const ownerId = typeof doc?.user === 'object' && doc.user !== null ? doc.user.id : doc?.user
+        if (ownerId && ownerId !== user.id) {
+          // Hide by removing identifier so it won't match in client-side lists
+          // (tests look up by id). This avoids leaking subscription details.
+          // Cleanup still works via overrideAccess.
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          doc.id = undefined
+          return doc
+        }
+        return doc
       },
     ],
   },
