@@ -44,6 +44,7 @@ export function JoinEventButton({
       setIsJoined(hasParticipation)
     }
 
+    // Only load participation once on mount, not on every render
     loadParticipation()
 
     return () => {
@@ -77,7 +78,7 @@ export function JoinEventButton({
       const newCount = data.participantsCount || participantsCount + 1
       setParticipantsCount(newCount)
       onCountUpdate?.(newCount)
-      showSuccessToast('Do‘'Žczy‘>e‘> do wydarzenia! ?«¦%')
+      showSuccessToast('DoÅ‚Ä…czyÅ‚eÅ› do wydarzenia!')
       onSuccess?.()
     }
 
@@ -85,7 +86,7 @@ export function JoinEventButton({
   }
 
   const handleLeave = async () => {
-    const confirmed = confirm('Czy na pewno chcesz opu‘>ciŽA to wydarzenie?')
+    const confirmed = confirm('Czy na pewno chcesz opuÅ›ciÄ‡ to wydarzenie?')
     if (!confirmed) return
 
     setIsLoading(true)
@@ -102,7 +103,7 @@ export function JoinEventButton({
       const newCount = data.participantsCount || Math.max(0, participantsCount - 1)
       setParticipantsCount(newCount)
       onCountUpdate?.(newCount)
-      showSuccessToast('Opusci‘>e‘> wydarzenie')
+      showSuccessToast('OpuÅ›ciÅ‚eÅ› wydarzenie')
       onSuccess?.()
     }
 
@@ -116,7 +117,7 @@ export function JoinEventButton({
         className="btn btn-primary btn-full"
         aria-label="Login to join event"
       >
-        Zaloguj siŽt, aby do‘'ŽczyŽA
+        Zaloguj siÄ™, aby doÅ‚Ä…czyÄ‡
       </button>
     )
   }
@@ -138,7 +139,7 @@ export function JoinEventButton({
               Opuszczanie...
             </>
           ) : (
-            'f~" Do‘'Žczono ¶ Opu‘>ŽA wydarzenie'
+            'OpuÅ›Ä‡ wydarzenie'
           )}
         </button>
       ) : (
@@ -153,10 +154,10 @@ export function JoinEventButton({
           {isLoading ? (
             <>
               <span className="spinner"></span>
-              Do‘'Žczanie...
+              DoÅ‚Ä…czanie...
             </>
           ) : (
-            'Do‘'Žcz do wydarzenia'
+            'DoÅ‚Ä…cz do wydarzenia!'
           )}
         </button>
       )}

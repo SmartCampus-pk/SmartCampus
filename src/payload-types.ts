@@ -70,6 +70,8 @@ export interface Config {
     users: User;
     media: Media;
     events: Event;
+    subscriptions: Subscription;
+    notifications: Notification;
     organizations: Organization;
     'event-participations': EventParticipation;
     'payload-kv': PayloadKv;
@@ -82,6 +84,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
     'event-participations': EventParticipationsSelect<false> | EventParticipationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -352,7 +356,6 @@ export interface Organization {
   deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -450,7 +453,68 @@ export interface Event {
   deletedBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
+}
+/**
+ * User subscriptions to events or organizations
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  /**
+   * User who subscribed
+   */
+  user: string | User;
+  /**
+   * Type of subscription
+   */
+  type: 'event' | 'organization';
+  /**
+   * Event being subscribed to (required if type is event)
+   */
+  event?: (string | null) | Event;
+  /**
+   * Organization being subscribed to (required if type is organization)
+   */
+  organization?: (string | null) | Organization;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User notifications and announcements
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: string;
+  /**
+   * User who receives the notification
+   */
+  user: string | User;
+  /**
+   * Notification title
+   */
+  title: string;
+  /**
+   * Notification message content
+   */
+  message: string;
+  /**
+   * Type of notification
+   */
+  type: 'event_update' | 'announcement';
+  /**
+   * Related event (if applicable)
+   */
+  relatedEvent?: (string | null) | Event;
+  /**
+   * Whether the notification has been read
+   */
+  isRead?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -508,6 +572,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: string | Event;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: string | Subscription;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: string | Notification;
       } | null)
     | ({
         relationTo: 'organizations';
@@ -698,7 +770,32 @@ export interface EventsSelect<T extends boolean = true> {
   deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  user?: T;
+  type?: T;
+  event?: T;
+  organization?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  user?: T;
+  title?: T;
+  message?: T;
+  type?: T;
+  relatedEvent?: T;
+  isRead?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -726,7 +823,6 @@ export interface OrganizationsSelect<T extends boolean = true> {
   deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

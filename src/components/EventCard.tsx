@@ -1,13 +1,11 @@
 import Link from 'next/link'
 import React from 'react'
+import type { Event } from '@/payload-types'
 
-interface EventCardProps {
-  id: string
-  title: string
-  description: string
-  eventDate?: string
-  location?: string
-  participantsCount?: number
+type EventCardProps = Pick<
+  Event,
+  'id' | 'title' | 'description' | 'eventDate' | 'location' | 'participantsCount'
+> & {
   className?: string
 }
 
